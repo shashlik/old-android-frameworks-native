@@ -138,11 +138,13 @@ void BBinder::attachObject(
     const void* objectID, void* object, void* cleanupCookie,
     object_cleanup_func func)
 {
+#if 0  // Temporarily disabled to make it build on 64 bit systems. This will be reenabled when we need to make the binder actually work.
     Extras* e = mExtras;
 
     if (!e) {
         e = new Extras;
-        if (android_atomic_cmpxchg(0, reinterpret_cast<int32_t>(e),
+        if (android_atomic_cmpxchg(0, reinterpret_cast<int32_t>(e
+),
                 reinterpret_cast<volatile int32_t*>(&mExtras)) != 0) {
             delete e;
             e = mExtras;
@@ -152,6 +154,7 @@ void BBinder::attachObject(
 
     AutoMutex _l(e->mLock);
     e->mObjects.attach(objectID, object, cleanupCookie, func);
+#endif
 }
 
 void* BBinder::findObject(const void* objectID) const
