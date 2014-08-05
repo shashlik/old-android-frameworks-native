@@ -757,7 +757,9 @@ status_t IPCThreadState::waitForResponse(Parcel *reply, status_t *acquireResult)
                             tr.offsets_size/sizeof(size_t),
                             freeBuffer, this);
                     } else {
+#if 0  // IW: Problems casting pointers on 64 bit systems
                         err = *static_cast<const status_t*>(tr.data.ptr.buffer);
+#endif
                         freeBuffer(NULL,
                             reinterpret_cast<const uint8_t*>(tr.data.ptr.buffer),
                             tr.data_size,

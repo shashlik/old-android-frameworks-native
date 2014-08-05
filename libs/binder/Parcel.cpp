@@ -77,12 +77,16 @@ void acquire_object(const sp<ProcessState>& proc,
         case BINDER_TYPE_BINDER:
             if (obj.binder) {
                 LOG_REFS("Parcel %p acquiring reference on local %p", who, obj.cookie);
+#if 0  // IW: Problems casting pointers on 64 bit systems
                 static_cast<IBinder*>(obj.cookie)->incStrong(who);
+#endif
             }
             return;
         case BINDER_TYPE_WEAK_BINDER:
             if (obj.binder)
+#if 0  // IW: Problems casting pointers on 64 bit systems
                 static_cast<RefBase::weakref_type*>(obj.binder)->incWeak(who);
+#endif
             return;
         case BINDER_TYPE_HANDLE: {
             const sp<IBinder> b = proc->getStrongProxyForHandle(obj.handle);
@@ -114,12 +118,16 @@ void release_object(const sp<ProcessState>& proc,
         case BINDER_TYPE_BINDER:
             if (obj.binder) {
                 LOG_REFS("Parcel %p releasing reference on local %p", who, obj.cookie);
+#if 0  // IW: Problems casting pointers on 64 bit systems
                 static_cast<IBinder*>(obj.cookie)->decStrong(who);
+#endif
             }
             return;
         case BINDER_TYPE_WEAK_BINDER:
             if (obj.binder)
+#if 0  // IW: Problems casting pointers on 64 bit systems
                 static_cast<RefBase::weakref_type*>(obj.binder)->decWeak(who);
+#endif
             return;
         case BINDER_TYPE_HANDLE: {
             const sp<IBinder> b = proc->getStrongProxyForHandle(obj.handle);
@@ -242,12 +250,18 @@ status_t unflatten_binder(const sp<ProcessState>& proc,
     if (flat) {
         switch (flat->type) {
             case BINDER_TYPE_BINDER:
+#if 0  // IW: Problems casting pointers on 64 bit systems
                 *out = static_cast<IBinder*>(flat->cookie);
+#endif
                 return finish_unflatten_binder(NULL, *flat, in);
             case BINDER_TYPE_HANDLE:
                 *out = proc->getStrongProxyForHandle(flat->handle);
+#if 0  // IW: Problems casting pointers on 64 bit systems
                 return finish_unflatten_binder(
                     static_cast<BpBinder*>(out->get()), *flat, in);
+#else
+                return finish_unflatten_binder(NULL, *flat, in);
+#endif
         }        
     }
     return BAD_TYPE;
@@ -261,13 +275,17 @@ status_t unflatten_binder(const sp<ProcessState>& proc,
     if (flat) {
         switch (flat->type) {
             case BINDER_TYPE_BINDER:
+#if 0  // IW: Problems casting pointers on 64 bit systems
                 *out = static_cast<IBinder*>(flat->cookie);
+#endif
                 return finish_unflatten_binder(NULL, *flat, in);
             case BINDER_TYPE_WEAK_BINDER:
                 if (flat->binder != NULL) {
+#if 0  // IW: Problems casting pointers on 64 bit systems
                     out->set_object_and_refs(
                         static_cast<IBinder*>(flat->cookie),
                         static_cast<RefBase::weakref_type*>(flat->binder));
+#endif
                 } else {
                     *out = NULL;
                 }
@@ -1061,7 +1079,7 @@ String16 Parcel::readString16() const
 {
     size_t len;
     const char16_t* str = readString16Inplace(&len);
-    if (str) return String16(str, len);
+    if (str) return String16(str, size_t(len));
     ALOGE("Reading a NULL string not supported here.");
     return String16();
 }
