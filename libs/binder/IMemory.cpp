@@ -216,7 +216,7 @@ status_t BnMemory::onTransact(
             CHECK_INTERFACE(IMemory, data, reply);
             ssize_t offset;
             size_t size;
-            reply->writeStrongBinder( getMemory(&offset, &size)->asBinder() );
+            reply->writeStrongBinder( IInterface::asBinder(getMemory(&offset, &size)) );
             reply->writeInt32(offset);
             reply->writeInt32(size);
             return NO_ERROR;
@@ -241,10 +241,10 @@ BpMemoryHeap::~BpMemoryHeap() {
         if (mRealHeap) {
             // by construction we're the last one
             if (mBase != MAP_FAILED) {
-                sp<IBinder> binder = const_cast<BpMemoryHeap*>(this)->asBinder();
+                sp<IBinder> binder = IInterface::asBinder(this);
 
                 if (VERBOSE) {
-                    ALOGD("UNMAPPING binder=%p, heap=%p, size=%d, fd=%d",
+                    ALOGD("UNMAPPING binder=%p, heap=%p, size=%zu, fd=%d",
                             binder.get(), this, mSize, mHeapId);
                     CallStack stack(LOG_TAG);
                 }
@@ -253,7 +253,7 @@ BpMemoryHeap::~BpMemoryHeap() {
             }
         } else {
             // remove from list only if it was mapped before
-            sp<IBinder> binder = const_cast<BpMemoryHeap*>(this)->asBinder();
+            sp<IBinder> binder = IInterface::asBinder(this);
             free_heap(binder);
         }
     }
@@ -262,7 +262,7 @@ BpMemoryHeap::~BpMemoryHeap() {
 void BpMemoryHeap::assertMapped() const
 {
     if (mHeapId == -1) {
-        sp<IBinder> binder(const_cast<BpMemoryHeap*>(this)->asBinder());
+        sp<IBinder> binder(IInterface::asBinder(const_cast<BpMemoryHeap*>(this)));
         sp<BpMemoryHeap> heap(static_cast<BpMemoryHeap*>(find_heap(binder).get()));
         heap->assertReallyMapped();
         if (heap->mBase != MAP_FAILED) {
@@ -296,11 +296,12 @@ void BpMemoryHeap::assertReallyMapped() const
         uint32_t flags = reply.readInt32();
         uint32_t offset = reply.readInt32();
 
-        ALOGE_IF(err, "binder=%p transaction failed fd=%d, size=%ld, err=%d (%s)",
-                asBinder().get(), parcel_fd, size, err, strerror(-err));
+        ALOGE_IF(err, "binder=%p transaction failed fd=%d, size=%zd, err=%d (%s)",
+                IInterface::asBinder(this).get(),
+                parcel_fd, size, err, strerror(-err));
 
         int fd = dup( parcel_fd );
-        ALOGE_IF(fd==-1, "cannot dup fd=%d, size=%ld, err=%d (%s)",
+        ALOGE_IF(fd==-1, "cannot dup fd=%d, size=%zd, err=%d (%s)",
                 parcel_fd, size, err, strerror(errno));
 
         int access = PROT_READ;
@@ -313,8 +314,8 @@ void BpMemoryHeap::assertReallyMapped() const
             mRealHeap = true;
             mBase = mmap(0, size, access, MAP_SHARED, fd, offset);
             if (mBase == MAP_FAILED) {
-                ALOGE("cannot map BpMemoryHeap (binder=%p), size=%ld, fd=%d (%s)",
-                        asBinder().get(), size, fd, strerror(errno));
+                ALOGE("cannot map BpMemoryHeap (binder=%p), size=%zd, fd=%d (%s)",
+                        IInterface::asBinder(this).get(), size, fd, strerror(errno));
                 close(fd);
             } else {
                 mSize = size;
@@ -402,7 +403,7 @@ sp<IMemoryHeap> HeapCache::find_heap(const sp<IBinder>& binder)
     if (i>=0) {
         heap_info_t& info = mHeapCache.editValueAt(i);
         ALOGD_IF(VERBOSE,
-                "found binder=%p, heap=%p, size=%d, fd=%d, count=%d",
+                "found binder=%p, heap=%p, size=%zu, fd=%d, count=%d",
                 binder.get(), info.heap.get(),
                 static_cast<BpMemoryHeap*>(info.heap.get())->mSize,
                 static_cast<BpMemoryHeap*>(info.heap.get())->mHeapId,
@@ -435,7 +436,7 @@ void HeapCache::free_heap(const wp<IBinder>& binder)
             int32_t c = android_atomic_dec(&info.count);
             if (c == 1) {
                 ALOGD_IF(VERBOSE,
-                        "removing binder=%p, heap=%p, size=%d, fd=%d, count=%d",
+                        "removing binder=%p, heap=%p, size=%zu, fd=%d, count=%d",
                         binder.unsafe_get(), info.heap.get(),
                         static_cast<BpMemoryHeap*>(info.heap.get())->mSize,
                         static_cast<BpMemoryHeap*>(info.heap.get())->mHeapId,
@@ -466,7 +467,7 @@ void HeapCache::dump_heaps()
     for (int i=0 ; i<c ; i++) {
         const heap_info_t& info = mHeapCache.valueAt(i);
         BpMemoryHeap const* h(static_cast<BpMemoryHeap const *>(info.heap.get()));
-        ALOGD("hey=%p, heap=%p, count=%d, (fd=%d, base=%p, size=%d)",
+        ALOGD("hey=%p, heap=%p, count=%d, (fd=%d, base=%p, size=%zu)",
                 mHeapCache.keyAt(i).unsafe_get(),
                 info.heap.get(), info.count,
                 h->mHeapId, h->mBase, h->mSize);

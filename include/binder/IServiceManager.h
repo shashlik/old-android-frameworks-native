@@ -73,6 +73,7 @@ status_t getService(const String16& name, sp<INTERFACE>* outService)
         *outService = interface_cast<INTERFACE>(sm->getService(name));
         if ((*outService) != NULL) return NO_ERROR;
     }
+    ALOGE("No service by that name found!", name.string());
     return NAME_NOT_FOUND;
 }
 

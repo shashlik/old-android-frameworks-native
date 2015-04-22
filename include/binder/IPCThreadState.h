@@ -22,7 +22,7 @@
 #include <binder/ProcessState.h>
 #include <utils/Vector.h>
 
-#ifdef HAVE_WIN32_PROC
+#if defined(_WIN32)
 typedef  int  uid_t;
 #endif
 
@@ -39,8 +39,8 @@ public:
             
             status_t            clearLastError();
 
-            int                 getCallingPid() const;
-            int                 getCallingUid() const;
+            pid_t               getCallingPid() const;
+            uid_t               getCallingUid() const;
 
             void                setStrictModePolicy(int32_t policy);
             int32_t             getStrictModePolicy() const;
@@ -107,7 +107,7 @@ private:
     static  void                threadDestructor(void *st);
     static  void                freeBuffer(Parcel* parcel,
                                            const uint8_t* data, size_t dataSize,
-                                           const size_t* objects, size_t objectsSize,
+                                           const binder_size_t* objects, size_t objectsSize,
                                            void* cookie);
     
     const   sp<ProcessState>    mProcess;
