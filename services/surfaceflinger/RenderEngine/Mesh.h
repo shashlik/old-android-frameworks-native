@@ -17,6 +17,7 @@
 #ifndef SF_RENDER_ENGINE_MESH_H
 #define SF_RENDER_ENGINE_MESH_H
 
+#include <stdlib.h> // make compile with certain versions of GCC
 #include <stdint.h>
 
 namespace android {
