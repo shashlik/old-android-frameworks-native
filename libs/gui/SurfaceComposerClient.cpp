@@ -71,7 +71,9 @@ void ComposerService::connectLocked() {
     };
 
     mDeathObserver = new DeathObserver(*const_cast<ComposerService*>(this));
-    mComposerService->asBinder()->linkToDeath(mDeathObserver);
+//     mComposerService->asBinder()->linkToDeath(mDeathObserver);
+    // Adapt to updated binder api
+    IInterface::asBinder(mComposerService)->linkToDeath(mDeathObserver);
 }
 
 /*static*/ sp<ISurfaceComposer> ComposerService::getComposerService() {
@@ -448,14 +450,18 @@ status_t SurfaceComposerClient::initCheck() const {
 }
 
 sp<IBinder> SurfaceComposerClient::connection() const {
-    return (mClient != 0) ? mClient->asBinder() : 0;
+//     return (mClient != 0) ? mClient->asBinder() : 0;
+    // Adapt to updated binder api
+    return (mClient != 0) ? IInterface::asBinder(mClient) : 0;
 }
 
 status_t SurfaceComposerClient::linkToComposerDeath(
         const sp<IBinder::DeathRecipient>& recipient,
         void* cookie, uint32_t flags) {
     sp<ISurfaceComposer> sm(ComposerService::getComposerService());
-    return sm->asBinder()->linkToDeath(recipient, cookie, flags);
+//     return sm->asBinder()->linkToDeath(recipient, cookie, flags);
+    // Adapt to updated binder API
+    return IInterface::asBinder(sm)->linkToDeath(recipient, cookie, flags);
 }
 
 void SurfaceComposerClient::dispose() {

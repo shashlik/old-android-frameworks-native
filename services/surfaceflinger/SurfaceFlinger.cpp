@@ -651,7 +651,9 @@ size_t SurfaceFlinger::getMaxViewportDims() const {
 bool SurfaceFlinger::authenticateSurfaceTexture(
         const sp<IGraphicBufferProducer>& bufferProducer) const {
     Mutex::Autolock _l(mStateLock);
-    sp<IBinder> surfaceTextureBinder(bufferProducer->asBinder());
+//     sp<IBinder> surfaceTextureBinder(bufferProducer->asBinder());
+    // Adapt to work with updated binder API
+    sp<IBinder> surfaceTextureBinder(IInterface::asBinder(bufferProducer));
     return mGraphicBufferProducerList.indexOf(surfaceTextureBinder) >= 0;
 }
 
@@ -1269,7 +1271,9 @@ void SurfaceFlinger::handleTransactionLocked(uint32_t transactionFlags)
                     // this display is in both lists. see if something changed.
                     const DisplayDeviceState& state(curr[j]);
                     const wp<IBinder>& display(curr.keyAt(j));
-                    if (state.surface->asBinder() != draw[i].surface->asBinder()) {
+//                     if (state.surface->asBinder() != draw[i].surface->asBinder()) {
+                    // Adapt to work with updated binder API
+                    if (IInterface::asBinder(state.surface) != IInterface::asBinder(draw[i].surface)) {
                         // changing the surface is like destroying and
                         // recreating the DisplayDevice, so we just remove it
                         // from the drawing state, so that it get re-added
@@ -1837,7 +1841,9 @@ void SurfaceFlinger::addClientLayer(const sp<Client>& client,
     // add this layer to the current state list
     Mutex::Autolock _l(mStateLock);
     mCurrentState.layersSortedByZ.add(lbc);
-    mGraphicBufferProducerList.add(gbc->asBinder());
+//     mGraphicBufferProducerList.add(gbc->asBinder());
+    // Adapt to work with updated binder API
+    mGraphicBufferProducerList.add(IInterface::asBinder(gbc));
 }
 
 status_t SurfaceFlinger::removeLayer(const sp<Layer>& layer) {
@@ -1910,7 +1916,9 @@ void SurfaceFlinger::setTransactionState(
         // NOTE: it would be better to use RTTI as we could directly check
         // that we have a Client*. however, RTTI is disabled in Android.
         if (s.client != NULL) {
-            sp<IBinder> binder = s.client->asBinder();
+//             sp<IBinder> binder = s.client->asBinder();
+            // Adapt to work with updated binder API
+            sp<IBinder> binder = IInterface::asBinder(s.client);
             if (binder != NULL) {
                 String16 desc(binder->getInterfaceDescriptor());
                 if (desc == ISurfaceComposerClient::descriptor) {
@@ -1957,7 +1965,9 @@ uint32_t SurfaceFlinger::setDisplayStateLocked(const DisplayState& s)
     if (disp.isValid()) {
         const uint32_t what = s.what;
         if (what & DisplayState::eSurfaceChanged) {
-            if (disp.surface->asBinder() != s.surface->asBinder()) {
+//             if (disp.surface->asBinder() != s.surface->asBinder()) {
+            // Adapt to work with updated binder API
+            if (IInterface::asBinder(disp.surface) != IInterface::asBinder(s.surface)) {
                 disp.surface = s.surface;
                 flags |= eDisplayTransactionNeeded;
             }
@@ -2808,7 +2818,9 @@ class GraphicProducerWrapper : public BBinder, public MessageHandler {
     virtual void handleMessage(const Message& message) {
         android_atomic_release_load(&memoryBarrier);
         if (message.what == MSG_API_CALL) {
-            impl->asBinder()->transact(code, data[0], reply);
+//             impl->asBinder()->transact(code, data[0], reply);
+            // Adapt to work with updated binder API
+            IInterface::asBinder(impl)->transact(code, data[0], reply);
             barrier.open();
         } else if (message.what == MSG_EXIT) {
             exitRequested = true;
@@ -2850,7 +2862,9 @@ status_t SurfaceFlinger::captureScreen(const sp<IBinder>& display,
     // if we have secure windows on this display, never allow the screen capture
     // unless the producer interface is local (i.e.: we can take a screenshot for
     // ourselves).
-    if (!producer->asBinder()->localBinder()) {
+//     if (!producer->asBinder()->localBinder()) {
+    // Adapt to work with updated binder API
+    if (!IInterface::asBinder(producer)->localBinder()) {
         Mutex::Autolock _l(mStateLock);
         sp<const DisplayDevice> hw(getDisplayDevice(display));
         if (hw->getSecureLayerVisible()) {
@@ -2886,7 +2900,9 @@ status_t SurfaceFlinger::captureScreen(const sp<IBinder>& display,
             sp<const DisplayDevice> hw(flinger->getDisplayDevice(display));
             result = flinger->captureScreenImplLocked(hw,
                     producer, reqWidth, reqHeight, minLayerZ, maxLayerZ);
-            static_cast<GraphicProducerWrapper*>(producer->asBinder().get())->exit(result);
+//             static_cast<GraphicProducerWrapper*>(producer->asBinder().get())->exit(result);
+            // Adapt to work with updated binder API
+            static_cast<GraphicProducerWrapper*>(IInterface::asBinder(producer).get())->exit(result);
             return true;
         }
     };
