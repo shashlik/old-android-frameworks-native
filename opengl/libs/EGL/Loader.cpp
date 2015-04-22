@@ -187,8 +187,17 @@ void* Loader::open(egl_connection_t* cnx)
 
     LOG_ALWAYS_FATAL_IF(!hnd, "couldn't find an OpenGL ES implementation");
 
-    cnx->libGles2 = load_wrapper("/system/lib/libGLESv2.so");
-    cnx->libGles1 = load_wrapper("/system/lib/libGLESv1_CM.so");
+//     cnx->libGles2 = load_wrapper("/system/lib/libGLESv2.so");
+//     cnx->libGles1 = load_wrapper("/system/lib/libGLESv1_CM.so");
+    char * androidRootDir = getenv("ANDROID_ROOT");
+    char gles2lib[4192];
+    char gles1lib[4192];
+    strcpy(gles2lib, androidRootDir);
+    strcat(gles2lib, "/lib/libGLESv2.so");
+    strcpy(gles1lib, androidRootDir);
+    strcat(gles1lib, "/lib/libGLESv1_CM.so");
+    cnx->libGles2 = load_wrapper(gles2lib);
+    cnx->libGles1 = load_wrapper(gles1lib);
     LOG_ALWAYS_FATAL_IF(!cnx->libGles2 || !cnx->libGles1,
             "couldn't load system OpenGL ES wrapper libraries");
 
@@ -267,9 +276,13 @@ void *Loader::load_driver(const char* kind,
             String8 result;
             String8 pattern;
             pattern.appendFormat("lib%s", kind);
+            char * androidRootDir = getenv("ANDROID_ROOT");
+            char sysDir[4192];
+            strcpy(sysDir, androidRootDir);
+            strcat(sysDir, "/lib/egl");
             const char* const searchPaths[] = {
                     "/vendor/lib/egl",
-                    "/system/lib/egl"
+                    sysDir
             };
 
             // first, we search for the exact name of the GLES userspace
@@ -332,10 +345,10 @@ void *Loader::load_driver(const char* kind,
                     if (e->d_type == DT_DIR) {
                         continue;
                     }
-                    if (!strcmp(e->d_name, "libGLES_android.so")) {
-                        // always skip the software renderer
-                        continue;
-                    }
+//                     if (!strcmp(e->d_name, "libGLES_android.so")) {
+//                         // always skip the software renderer
+//                         continue;
+//                     }
                     if (strstr(e->d_name, pattern.string()) == e->d_name) {
                         if (!strcmp(e->d_name + strlen(e->d_name) - 3, ".so")) {
                             result.clear();
