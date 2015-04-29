@@ -19,6 +19,7 @@
 
 #include "installd.h"
 
+#include "../installd/private/android_filesystem_config.h"
 
 #define BUFFER_MAX    1024  /* input buffer for commands */
 #define TOKEN_MAX     8     /* max number of arguments in buffer */
@@ -344,19 +345,24 @@ int initialize_directories() {
         goto fail;
     }
 
+    ALOGD("access user_data_dir\n");
     // Make the /data/user directory if necessary
     if (access(user_data_dir, R_OK) < 0) {
+        ALOGD("mkdir user_data_dir");
         if (mkdir(user_data_dir, 0711) < 0) {
             goto fail;
         }
-        if (chown(user_data_dir, AID_SYSTEM, AID_SYSTEM) < 0) {
+        ALOGD("chown user_data_dir");
+        if (chown(user_data_dir, AID_SYSTEM, AGID_SYSTEM) < 0) {
             goto fail;
         }
+        ALOGD("chmod user_data_dir");
         if (chmod(user_data_dir, 0711) < 0) {
             goto fail;
         }
     }
-    // Make the /data/user/0 symlink to /data/data if necessary
+
+    ALOGD("Make the /data/user/0 symlink to /data/data if necessary");
     if (access(primary_data_dir, R_OK) < 0) {
         if (symlink(legacy_data_dir, primary_data_dir)) {
             goto fail;
@@ -367,16 +373,17 @@ int initialize_directories() {
         // Introducing multi-user, so migrate /data/media contents into /data/media/0
         ALOGD("Upgrading /data/media for multi-user");
 
-        // Ensure /data/media
-        if (fs_prepare_dir(android_media_dir.path, 0770, AID_MEDIA_RW, AID_MEDIA_RW) == -1) {
+
+        ALOGI("Ensure /data/media");
+        if (fs_prepare_dir(android_media_dir.path, 0770, AID_MEDIA_RW, AGID_MEDIA_RW) == -1) {
             goto fail;
         }
 
-        // /data/media.tmp
+        ALOGI("/data/media.tmp");
         char media_tmp_dir[PATH_MAX];
         snprintf(media_tmp_dir, PATH_MAX, "%smedia.tmp", android_data_dir.path);
 
-        // Only copy when upgrade not already in progress
+        ALOGI("Only copy when upgrade not already in progress");
         if (access(media_tmp_dir, F_OK) == -1) {
             if (rename(android_media_dir.path, media_tmp_dir) == -1) {
                 ALOGE("Failed to move legacy media path: %s", strerror(errno));
@@ -384,16 +391,16 @@ int initialize_directories() {
             }
         }
 
-        // Create /data/media again
-        if (fs_prepare_dir(android_media_dir.path, 0770, AID_MEDIA_RW, AID_MEDIA_RW) == -1) {
+        ALOGI("Create /data/media again");
+        if (fs_prepare_dir(android_media_dir.path, 0770, AID_MEDIA_RW, AGID_MEDIA_RW) == -1) {
             goto fail;
         }
 
-        // /data/media/0
+        ALOGI("/data/media/0");
         char owner_media_dir[PATH_MAX];
         snprintf(owner_media_dir, PATH_MAX, "%s0", android_media_dir.path);
 
-        // Move any owner data into place
+        ALOGI("Move any owner data into place");
         if (access(media_tmp_dir, F_OK) == 0) {
             if (rename(media_tmp_dir, owner_media_dir) == -1) {
                 ALOGE("Failed to move owner media path: %s", strerror(errno));
@@ -401,7 +408,7 @@ int initialize_directories() {
             }
         }
 
-        // Ensure media directories for any existing users
+        ALOGI("Ensure media directories for any existing users");
         DIR *dir;
         struct dirent *dirent;
         char user_media_dir[PATH_MAX];
@@ -418,9 +425,9 @@ int initialize_directories() {
                         if ((name[1] == '.') && (name[2] == 0)) continue;
                     }
 
-                    // /data/media/<user_id>
+                    ALOGI("/data/media/<user_id> for user %s" , name);
                     snprintf(user_media_dir, PATH_MAX, "%s%s", android_media_dir.path, name);
-                    if (fs_prepare_dir(user_media_dir, 0770, AID_MEDIA_RW, AID_MEDIA_RW) == -1) {
+                    if (fs_prepare_dir(user_media_dir, 0770, AID_MEDIA_RW, AGID_MEDIA_RW) == -1) {
                         goto fail;
                     }
                 }
@@ -459,7 +466,7 @@ int initialize_directories() {
         ALOGE("Failed to setup media for user 0");
         goto fail;
     }
-    if (fs_prepare_dir(media_obb_dir, 0770, AID_MEDIA_RW, AID_MEDIA_RW) == -1) {
+    if (fs_prepare_dir(media_obb_dir, 0770, AID_MEDIA_RW, AGID_MEDIA_RW) == -1) {
         goto fail;
     }
 
@@ -487,15 +494,15 @@ static void drop_privileges() {
         exit(1);
     }
 
-    if (setgid(AID_INSTALL) < 0) {
-        ALOGE("setgid() can't drop privileges; exiting.\n");
-        exit(1);
-    }
-
-    if (setuid(AID_INSTALL) < 0) {
-        ALOGE("setuid() can't drop privileges; exiting.\n");
-        exit(1);
-    }
+//     if (setgid(AID_INSTALL) < 0) {
+//         ALOGE("setgid() can't drop privileges; exiting.\n");
+//         exit(1);
+//     }
+// 
+//     if (setuid(AID_INSTALL) < 0) {
+//         ALOGE("setuid() can't drop privileges; exiting.\n");
+//         exit(1);
+//     }
 
     struct __user_cap_header_struct capheader;
     struct __user_cap_data_struct capdata[2];
@@ -514,10 +521,10 @@ static void drop_privileges() {
     capdata[0].inheritable = 0;
     capdata[1].inheritable = 0;
 
-    if (capset(&capheader, &capdata[0]) < 0) {
-        ALOGE("capset failed: %s\n", strerror(errno));
-        exit(1);
-    }
+//     if (capset(&capheader, &capdata[0]) < 0) {
+//         ALOGE("capset failed: %s\n", strerror(errno));
+//         exit(1);
+//     }
 }
 
 int main(const int argc, const char *argv[]) {

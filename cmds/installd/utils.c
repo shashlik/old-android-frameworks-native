@@ -15,6 +15,7 @@
 */
 
 #include "installd.h"
+#include "../installd/private/android_filesystem_config.h"
 
 #define CACHE_NOISY(x) //x
 
@@ -999,7 +1000,7 @@ int ensure_media_user_dirs(userid_t userid) {
 
     // Ensure /data/media/<userid> exists
     create_user_media_path(media_user_path, userid);
-    if (fs_prepare_dir(media_user_path, 0770, AID_MEDIA_RW, AID_MEDIA_RW) == -1) {
+    if (fs_prepare_dir(media_user_path, 0770, AID_MEDIA_RW, AGID_MEDIA_RW) == -1) {
         return -1;
     }
 

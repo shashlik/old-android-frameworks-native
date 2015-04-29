@@ -18,6 +18,7 @@
 #include <dirent.h>
 #include <fcntl.h>
 #include <sys/stat.h>
+#include <stddef.h> // for NULL
 
 #include <diskusage/dirsize.h>
 

@@ -17,7 +17,8 @@
 #include <sys/capability.h>
 #include "installd.h"
 #include <diskusage/dirsize.h>
-#include <selinux/android.h>
+#include "../installd/private/android_filesystem_config.h"
+// #include <selinux/android.h>
 
 /* Directory records that are used in execution of commands. */
 dir_rec_t android_data_dir;
@@ -91,12 +92,12 @@ int install(const char *pkgname, uid_t uid, gid_t gid, const char *seinfo)
         return -1;
     }
 
-    if (selinux_android_setfilecon2(pkgdir, pkgname, seinfo, uid) < 0) {
-        ALOGE("cannot setfilecon dir '%s': %s\n", pkgdir, strerror(errno));
-        unlink(libsymlink);
-        unlink(pkgdir);
-        return -errno;
-    }
+//     if (selinux_android_setfilecon2(pkgdir, pkgname, seinfo, uid) < 0) {
+//         ALOGE("cannot setfilecon dir '%s': %s\n", pkgdir, strerror(errno));
+//         unlink(libsymlink);
+//         unlink(pkgdir);
+//         return -errno;
+//     }
 
     if (chown(pkgdir, uid, gid) < 0) {
         ALOGE("cannot chown dir '%s': %s\n", pkgdir, strerror(errno));
@@ -245,12 +246,12 @@ int make_user_data(const char *pkgname, uid_t uid, userid_t userid)
         return -1;
     }
 
-    if (selinux_android_setfilecon(pkgdir, pkgname, uid) < 0) {
-        ALOGE("cannot setfilecon dir '%s': %s\n", pkgdir, strerror(errno));
-        unlink(libsymlink);
-        unlink(pkgdir);
-        return -errno;
-    }
+//     if (selinux_android_setfilecon(pkgdir, pkgname, uid) < 0) {
+//         ALOGE("cannot setfilecon dir '%s': %s\n", pkgdir, strerror(errno));
+//         unlink(libsymlink);
+//         unlink(pkgdir);
+//         return -errno;
+//     }
 
     if (chown(pkgdir, uid, uid) < 0) {
         ALOGE("cannot chown dir '%s': %s\n", pkgdir, strerror(errno));
