@@ -161,6 +161,7 @@ public:
         data.writeStrongBinder(service);
         data.writeInt32(allowIsolated ? 1 : 0);
         status_t err = remote()->transact(ADD_SERVICE_TRANSACTION, data, &reply);
+        ALOGI("Adding service %s to the servicemanager", String8(name).string());
         return err == NO_ERROR ? reply.readExceptionCode() : err;
     }
 
