@@ -83,6 +83,11 @@
  */
 #define DEBUG_SCREENSHOTS   false
 
+#undef LOG_ALWAYS_FATAL
+#define LOG_ALWAYS_FATAL(x) ALOGE(x)
+#undef LOG_ALWAYS_FATAL_IF
+#define LOG_ALWAYS_FATAL_IF(x,y) ALOGE("xy")
+
 EGLAPI const char* eglQueryStringImplementationANDROID(EGLDisplay dpy, EGLint name);
 
 namespace android {
@@ -768,9 +773,11 @@ status_t SurfaceFlinger::postMessageSync(const sp<MessageBase>& msg,
 }
 
 void SurfaceFlinger::run() {
+    ALOGI("SurfaceFlinger running main loop");
     do {
         waitForEvent();
     } while (true);
+    ALOGI("SurfaceFlinger exiting run loop");
 }
 
 void SurfaceFlinger::enableHardwareVsync() {
@@ -1109,7 +1116,8 @@ void SurfaceFlinger::doComposition() {
     const bool repaintEverything = android_atomic_and(0, &mRepaintEverything);
     for (size_t dpy=0 ; dpy<mDisplays.size() ; dpy++) {
         const sp<DisplayDevice>& hw(mDisplays[dpy]);
-        if (hw->canDraw()) {
+//         if (hw->canDraw()) {
+        if (false) {
             // transform the dirty region into this screen's coordinate space
             const Region dirtyRegion(hw->getDirtyRegion(repaintEverything));
 
