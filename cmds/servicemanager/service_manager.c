@@ -1,19 +1,18 @@
 /* Copyright 2008 The Android Open Source Project
  */
 
-#include <stdbool.h> // because otherwise bool isn't a type in c
-
 #include <errno.h>
 #include <fcntl.h>
 #include <inttypes.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
 
 #include <private/android_filesystem_config.h>
 
 // #include <selinux/android.h>
-// #include <selinux/avc.h>
+#include <selinux/avc.h>
 
 #include "binder.h"
 
@@ -56,14 +55,13 @@ int str16eq(const uint16_t *a, const char *b)
 
 static int selinux_enabled;
 static char *service_manager_context;
-// static struct selabel_handle* sehandle;
+static struct selabel_handle* sehandle;
 
 static bool check_mac_perms(pid_t spid, const char *tctx, const char *perm, const char *name)
 {
-    bool allowed = true;
 //     char *sctx = NULL;
 //     const char *class = "service_manager";
-//     bool allowed;
+    bool allowed = true;
 
 //     if (getpidcon(spid, &sctx) < 0) {
 //         ALOGE("SELinux: getpidcon(pid=%d) failed to retrieve pid context.\n", spid);
@@ -72,7 +70,7 @@ static bool check_mac_perms(pid_t spid, const char *tctx, const char *perm, cons
 // 
 //     int result = selinux_check_access(sctx, tctx, class, perm, (void *) name);
 //     allowed = (result == 0);
-
+// 
 //     freecon(sctx);
     return allowed;
 }
@@ -88,13 +86,13 @@ static bool check_mac_perms_from_getcon(pid_t spid, const char *perm)
 
 static bool check_mac_perms_from_lookup(pid_t spid, const char *perm, const char *name)
 {
-    bool allowed;
-    char *tctx = NULL;
-
-    if (selinux_enabled <= 0) {
-        return true;
-    }
-
+    bool allowed = true;
+//     char *tctx = NULL;
+// 
+//     if (selinux_enabled <= 0) {
+//         return true;
+//     }
+// 
 //     if (!sehandle) {
 //         ALOGE("SELinux: Failed to find sehandle. Aborting service_manager.\n");
 //         abort();
@@ -104,8 +102,8 @@ static bool check_mac_perms_from_lookup(pid_t spid, const char *perm, const char
 //         ALOGE("SELinux: No match for %s in service_contexts.\n", name);
 //         return false;
 //     }
-
-    allowed = check_mac_perms(spid, tctx, perm, name);
+// 
+//     allowed = check_mac_perms(spid, tctx, perm, name);
 //     freecon(tctx);
     return allowed;
 }
@@ -201,8 +199,8 @@ int do_add_service(struct binder_state *bs,
 {
     struct svcinfo *si;
 
-    //ALOGI("add_service('%s',%x,%s) uid=%d\n", str8(s, len), handle,
-    //        allow_isolated ? "allow_isolated" : "!allow_isolated", uid);
+    ALOGI("add_service('%s',%x,%s) uid=%d\n", str8(s, len), handle,
+           allow_isolated ? "allow_isolated" : "!allow_isolated", uid);
 
     if (!handle || (len == 0) || (len > 127))
         return -1;
@@ -341,11 +339,11 @@ int svcmgr_handler(struct binder_state *bs,
 }
 
 
-// static int audit_callback(void *data, security_class_t cls, char *buf, size_t len)
-// {
-//     snprintf(buf, len, "service=%s", !data ? "NULL" : (char *)data);
-//     return 0;
-// }
+static int audit_callback(void *data, security_class_t cls, char *buf, size_t len)
+{
+    snprintf(buf, len, "service=%s", !data ? "NULL" : (char *)data);
+    return 0;
+}
 
 int main(int argc, char **argv)
 {
@@ -362,11 +360,10 @@ int main(int argc, char **argv)
         return -1;
     }
 
-    selinux_enabled = 0;
 //     selinux_enabled = is_selinux_enabled();
 //     sehandle = selinux_android_service_context_handle();
-
-    if (selinux_enabled > 0) {
+// 
+//     if (selinux_enabled > 0) {
 //         if (sehandle == NULL) {
 //             ALOGE("SELinux: Failed to acquire sehandle. Aborting.\n");
 //             abort();
@@ -376,7 +373,7 @@ int main(int argc, char **argv)
 //             ALOGE("SELinux: Failed to acquire service_manager context. Aborting.\n");
 //             abort();
 //         }
-    }
+//     }
 
 //     union selinux_callback cb;
 //     cb.func_audit = audit_callback;
