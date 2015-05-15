@@ -60,6 +60,8 @@ void SensorManager::sensorManagerDied()
 }
 
 status_t SensorManager::assertStateLocked() const {
+    ALOGE("NO SENSORS HERE BABEH! (seriously, remove this when sensors work)");
+    return NO_ERROR;
     if (mSensorServer == NULL) {
         // try for one second
         const String16 name("sensorservice");
