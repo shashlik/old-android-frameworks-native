@@ -493,8 +493,8 @@ void HWComposer::eventControl(int disp, int event, int enabled) {
         const int32_t oldValue = mDisplayData[disp].events & eventBit;
         if (newValue != oldValue) {
             ATRACE_CALL();
-            ALOGE("THIS NEEDS PUTTING BACK WHEN THE DISPLAY SYSTEM IS WORKING");
-//             err = mHwc->eventControl(mHwc, disp, event, enabled);
+//             ALOGE("THIS NEEDS PUTTING BACK WHEN THE DISPLAY SYSTEM IS WORKING");
+            err = mHwc->eventControl(mHwc, disp, event, enabled);
             if (!err) {
                 int32_t& events(mDisplayData[disp].events);
                 events = (events & ~eventBit) | newValue;
@@ -739,9 +739,9 @@ status_t HWComposer::release(int disp) {
 
 status_t HWComposer::acquire(int disp) {
     LOG_FATAL_IF(disp >= VIRTUAL_DISPLAY_ID_BASE);
-//     if (mHwc) {
-//         return (status_t)mHwc->blank(mHwc, disp, 0);
-//     }
+    if (mHwc) {
+        return (status_t)mHwc->blank(mHwc, disp, 0);
+    }
     return NO_ERROR;
 }
 
@@ -759,6 +759,9 @@ void HWComposer::disconnectDisplay(int disp) {
 }
 
 int HWComposer::getVisualID() const {
+    /// NOTE Shashlik
+    // HACK TIME!
+    return HAL_PIXEL_FORMAT_RGBX_8888;
     if (mHwc && hwcHasApiVersion(mHwc, HWC_DEVICE_API_VERSION_1_1)) {
         // FIXME: temporary hack until HAL_PIXEL_FORMAT_IMPLEMENTATION_DEFINED
         // is supported by the implementation. we can only be in this case

@@ -77,16 +77,20 @@
 
 #define DISPLAY_COUNT       1
 
+/// NOTE Shashlik stuff here
+#include <QX11Info>
+/// NOTE Shashlik stuff ends
+
 /*
  * DEBUG_SCREENSHOTS: set to true to check that screenshots are not all
  * black pixels.
  */
 #define DEBUG_SCREENSHOTS   false
 
-#undef LOG_ALWAYS_FATAL
-#define LOG_ALWAYS_FATAL(x) ALOGE(x)
-#undef LOG_ALWAYS_FATAL_IF
-#define LOG_ALWAYS_FATAL_IF(x,y) ALOGE("xy")
+// #undef LOG_ALWAYS_FATAL
+// #define LOG_ALWAYS_FATAL(x) ALOGE(x)
+// #undef LOG_ALWAYS_FATAL_IF
+// #define LOG_ALWAYS_FATAL_IF(x,y) ALOGE(y)
 
 EGLAPI const char* eglQueryStringImplementationANDROID(EGLDisplay dpy, EGLint name);
 
@@ -518,8 +522,14 @@ void SurfaceFlinger::init() {
     Mutex::Autolock _l(mStateLock);
 
     // initialize EGL for the default display
-    mEGLDisplay = eglGetDisplay(EGL_DEFAULT_DISPLAY);
-    eglInitialize(mEGLDisplay, NULL, NULL);
+    /// NOTE Shashlik
+//     mEGLDisplay = eglGetDisplay(EGL_DEFAULT_DISPLAY);
+    // NO WE DON'T! Initialise it for x11 display (and for wayland when we get to that...)
+    mEGLDisplay = eglGetDisplay((EGLNativeDisplayType)QX11Info::display());
+    EGLint majorVersion;
+    EGLint minorVersion;
+    EGLBoolean initRet = eglInitialize(mEGLDisplay, &majorVersion, &minorVersion);
+    ALOGI("Initialisation of EGL status: %d, major %d, minor %d", initRet, majorVersion, minorVersion);
 
     // Initialize the H/W composer object.  There may or may not be an
     // actual hardware composer underneath.
@@ -539,13 +549,13 @@ void SurfaceFlinger::init() {
     if (err != NO_ERROR) {
         // still didn't work, probably because we're on the emulator...
         // try a simplified query
-        ALOGW("no suitable EGLConfig found, trying a simpler query");
+        ALOGW("no suitable EGLConfig found, trying a simpler query - error is %d", err);
         err = selectEGLConfig(mEGLDisplay, mHwc->getVisualID(), 0, &mEGLConfig);
     }
 
     if (err != NO_ERROR) {
         // this EGL is too lame for android
-        LOG_ALWAYS_FATAL("no suitable EGLConfig found, giving up");
+        ALOGE("no suitable EGLConfig found, giving up - error is %d", err);
     }
 
     // print some debugging info
@@ -1116,8 +1126,8 @@ void SurfaceFlinger::doComposition() {
     const bool repaintEverything = android_atomic_and(0, &mRepaintEverything);
     for (size_t dpy=0 ; dpy<mDisplays.size() ; dpy++) {
         const sp<DisplayDevice>& hw(mDisplays[dpy]);
-//         if (hw->canDraw()) {
-        if (false) {
+        if (hw->canDraw()) {
+//         if (false) {
             // transform the dirty region into this screen's coordinate space
             const Region dirtyRegion(hw->getDirtyRegion(repaintEverything));
 

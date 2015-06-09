@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+#include <QCoreApplication>
+
 #include <stdint.h>
 #include <errno.h>
 #include <sys/types.h>
@@ -111,6 +113,7 @@ void MessageQueue::setEventThread(const sp<EventThread>& eventThread)
 
 void MessageQueue::waitMessage() {
     do {
+        QCoreApplication::processEvents();
         IPCThreadState::self()->flushCommands();
         int32_t ret = mLooper->pollOnce(-1);
         switch (ret) {
