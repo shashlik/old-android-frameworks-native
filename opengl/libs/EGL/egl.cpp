@@ -343,11 +343,24 @@ void gl_noop() {
 
 // ----------------------------------------------------------------------------
 
+
+//The old code had one GL  lookup per thread
+//allowing you to trace one thread
+//however this relied on some nonsense in pthread that we no longer have
+//instead we keep it simple with a static. Seems to work. David
+
+static gl_hooks_t const* s_dave_hack = 0;
+
 void setGlThreadSpecific(gl_hooks_t const *value) {
-    gl_hooks_t const * volatile * tls_hooks = get_tls_hooks();
-    tls_hooks[TLS_SLOT_OPENGL_API] = value;
+
+    android::s_dave_hack = value;
 }
 
+
+gl_hooks_t const* getGlThreadSpecific()
+{
+    return android::s_dave_hack;
+}
 // ----------------------------------------------------------------------------
 // GL / EGL hooks
 // ----------------------------------------------------------------------------

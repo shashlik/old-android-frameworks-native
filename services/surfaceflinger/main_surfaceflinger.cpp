@@ -18,8 +18,6 @@
 #include <sys/resource.h>
 #endif
 
-#include <qt5/QtGui/qguiapplication.h>
-
 #include <cutils/sched_policy.h>
 #include <binder/IServiceManager.h>
 #include <binder/IPCThreadState.h>
@@ -140,9 +138,6 @@ void handler(int sig) {
 
 int main(int argc, char** argv) {
     signal(SIGSEGV, handler);   // install our handler
-
-    // Alright, so this might seem ever so slightly odd. Without this, we can't later create a window to draw on in the shashlik hwcomposer module
-    QGuiApplication* app = new QGuiApplication(argc, argv);
 
     // When SF is launched in its own process, limit the number of
     // binder threads to 4.
