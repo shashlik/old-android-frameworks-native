@@ -20,6 +20,7 @@
 #include <ctype.h>
 #include <string.h>
 #include <errno.h>
+#include <stdio.h>
 
 #include <pthread.h>
 
@@ -33,7 +34,7 @@
 #include <GLES3/gl3ext.h>
 
 // set to 1 for debugging
-#define USE_SLOW_BINDING    0
+#define USE_SLOW_BINDING    1
 
 #undef NELEM
 #define NELEM(x)            (sizeof(x)/sizeof(*(x)))
@@ -73,7 +74,11 @@ struct gl_hooks_t {
 #undef GL_ENTRY
 #undef EGL_ENTRY
 
+
 EGLAPI void setGlThreadSpecific(gl_hooks_t const *value);
+EGLAPI gl_hooks_t const* getGlThreadSpecific();
+
+//map of gl hooks, should be one per thread. But threads are for noobs
 
 // We have a dedicated TLS slot in bionic
 inline gl_hooks_t const * volatile * get_tls_hooks() {
@@ -83,11 +88,16 @@ inline gl_hooks_t const * volatile * get_tls_hooks() {
     return tls_hooks;
 }
 
-inline EGLAPI gl_hooks_t const* getGlThreadSpecific() {
-    gl_hooks_t const * volatile * tls_hooks = get_tls_hooks();
-    gl_hooks_t const* hooks = tls_hooks[TLS_SLOT_OPENGL_API];
-    return hooks;
-}
+// inline EGLAPI gl_hooks_t const* getGlThreadSpecific() {
+//     gl_hooks_t const * volatile * tls_hooks = get_tls_hooks();
+//     gl_hooks_t const* hooks = tls_hooks[TLS_SLOT_OPENGL_API];
+//
+// //     gl_hooks_t const* hooks = s_dave_hack;
+// //
+//     printf("DAVE - got hoooks %d \n", hooks);
+//
+//     return hooks;
+// }
 
 // ----------------------------------------------------------------------------
 }; // namespace android

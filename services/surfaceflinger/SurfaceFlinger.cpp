@@ -524,8 +524,6 @@ void SurfaceFlinger::init() {
     // initialize EGL for the default display
     /// NOTE Shashlik
     mEGLDisplay = eglGetDisplay(EGL_DEFAULT_DISPLAY);
-    // NO WE DON'T! Initialise it for x11 display (and for wayland when we get to that...)
-//     mEGLDisplay = eglGetDisplay((EGLNativeDisplayType)QX11Info::display());
     EGLint majorVersion;
     EGLint minorVersion;
     EGLBoolean initRet = eglInitialize(mEGLDisplay, &majorVersion, &minorVersion);
