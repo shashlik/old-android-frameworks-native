@@ -575,23 +575,13 @@ private:
 // state
 // ----------------------------------------------------------------------------
 
-#ifdef HAVE_ANDROID_OS
-    // We have a dedicated TLS slot in bionic
-    inline void setGlThreadSpecific(ogles_context_t *value) {
-        ((uint32_t *)__get_tls())[TLS_SLOT_OPENGL] = (uint32_t)value;
-    }
-    inline ogles_context_t* getGlThreadSpecific() {
-        return (ogles_context_t *)(((unsigned *)__get_tls())[TLS_SLOT_OPENGL]);
-    }
-#else
-    extern pthread_key_t gGLKey;
-    inline void setGlThreadSpecific(ogles_context_t *value) {
-        pthread_setspecific(gGLKey, value);
-    }
-    inline ogles_context_t* getGlThreadSpecific() {
-        return static_cast<ogles_context_t*>(pthread_getspecific(gGLKey));
-    }
-#endif
+extern pthread_key_t gGLKey;
+inline void setGlThreadSpecific(ogles_context_t *value) {
+    pthread_setspecific(gGLKey, value);
+}
+inline ogles_context_t* getGlThreadSpecific() {
+    return static_cast<ogles_context_t*>(pthread_getspecific(gGLKey));
+}
 
 
 struct prims_t {
