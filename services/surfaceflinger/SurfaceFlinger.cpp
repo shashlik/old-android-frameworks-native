@@ -23,6 +23,7 @@
 #include <dlfcn.h>
 
 #include <EGL/egl.h>
+#include <EGL/eglext.h>
 
 #include <cutils/log.h>
 #include <cutils/properties.h>
@@ -87,12 +88,28 @@
  */
 #define DEBUG_SCREENSHOTS   false
 
-// #undef LOG_ALWAYS_FATAL
-// #define LOG_ALWAYS_FATAL(x) ALOGE(x)
-// #undef LOG_ALWAYS_FATAL_IF
-// #define LOG_ALWAYS_FATAL_IF(x,y) ALOGE(y)
+#undef LOG_ALWAYS_FATAL
+#define LOG_ALWAYS_FATAL(x) ALOGE(x)
+#undef LOG_ALWAYS_FATAL_IF
+#define LOG_ALWAYS_FATAL_IF(x,y) ALOGE("NOT FATAL - " y)
 
-EGLAPI const char* eglQueryStringImplementationANDROID(EGLDisplay dpy, EGLint name);
+// EGLAPI const char* eglQueryStringImplementationANDROID(EGLDisplay dpy, EGLint name);
+
+// EGLAPI const char* eglQueryStringImplementationANDROID(EGLDisplay dpy, EGLint name);
+extern EGLAPI EGLint (*epoxy_eglDupNativeFenceFDANDROID)(EGLDisplay dpy, EGLSyncKHR sync);
+#define eglDupNativeFenceFDANDROID epoxy_eglDupNativeFenceFDANDROID
+extern EGLAPI EGLBoolean (*epoxy_eglDestroyImageKHR)(EGLDisplay dpy, EGLImageKHR image);
+#define eglDestroyImageKHR epoxy_eglDestroyImageKHR
+extern EGLAPI EGLint (*epoxy_eglWaitSyncKHR)(EGLDisplay dpy, EGLSyncKHR sync, EGLint flags);
+#define eglWaitSyncKHR epoxy_eglWaitSyncKHR
+extern EGLAPI EGLint (*epoxy_eglClientWaitSyncKHR)(EGLDisplay dpy, EGLSyncKHR sync, EGLint flags, EGLTimeKHR timeout);
+#define eglClientWaitSyncKHR epoxy_eglClientWaitSyncKHR
+extern EGLAPI EGLSyncKHR (*epoxy_eglCreateSyncKHR)(EGLDisplay dpy, EGLenum type, const EGLint * attrib_list);
+#define eglCreateSyncKHR epoxy_eglCreateSyncKHR
+extern EGLAPI EGLImageKHR (*epoxy_eglCreateImageKHR)(EGLDisplay dpy, EGLContext ctx, EGLenum target, EGLClientBuffer buffer, const EGLint * attrib_list);
+#define eglCreateImageKHR epoxy_eglCreateImageKHR
+extern EGLAPI EGLBoolean (*epoxy_eglDestroySyncKHR)(EGLDisplay dpy, EGLSyncKHR sync);
+#define eglDestroySyncKHR epoxy_eglDestroySyncKHR
 
 namespace android {
 
@@ -2553,10 +2570,10 @@ void SurfaceFlinger::dumpAllLocked(const Vector<String16>& args, size_t& index,
 
     colorizer.bold(result);
     result.appendFormat("EGL implementation : %s\n",
-            eglQueryStringImplementationANDROID(mEGLDisplay, EGL_VERSION));
+            eglQueryString(mEGLDisplay, EGL_VERSION));
     colorizer.reset(result);
     result.appendFormat("%s\n",
-            eglQueryStringImplementationANDROID(mEGLDisplay, EGL_EXTENSIONS));
+            eglQueryString(mEGLDisplay, EGL_EXTENSIONS));
 
     mRenderEngine->dump(result);
 

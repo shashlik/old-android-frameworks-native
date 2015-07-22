@@ -19,6 +19,9 @@
 #include <GLES2/gl2.h>
 #include <GLES2/gl2ext.h>
 
+extern GL_APIENTRY void (*epoxy_glEGLImageTargetTexture2DOES)(GLenum target, GLeglImageOES image);
+#define glEGLImageTargetTexture2DOES epoxy_glEGLImageTargetTexture2DOES
+
 #include <utils/String8.h>
 #include <utils/Trace.h>
 

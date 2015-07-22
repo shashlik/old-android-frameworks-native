@@ -17,6 +17,19 @@
 #include <GLES/gl.h>
 #include <GLES/glext.h>
 
+extern GL_API void (*epoxy_glGenFramebuffersOES)(GLsizei n, GLuint * framebuffers);
+#define glGenFramebuffersOES epoxy_glGenFramebuffersOES
+extern GL_API void (*epoxy_glFramebufferTexture2DOES)(GLenum target, GLenum attachment, GLenum textarget, GLuint texture, GLint level);
+#define glFramebufferTexture2DOES epoxy_glFramebufferTexture2DOES
+extern GL_API void (*epoxy_glEGLImageTargetTexture2DOES)(GLenum target, GLeglImageOES image);
+#define glEGLImageTargetTexture2DOES epoxy_glEGLImageTargetTexture2DOES
+extern GL_API GLenum (*epoxy_glCheckFramebufferStatusOES)(GLenum target);
+#define glCheckFramebufferStatusOES epoxy_glCheckFramebufferStatusOES
+extern GL_API void (*epoxy_glBindFramebufferOES)(GLenum target, GLuint framebuffer);
+#define glBindFramebufferOES epoxy_glBindFramebufferOES
+extern GL_API void (*epoxy_glDeleteFramebuffersOES)(GLsizei n, const GLuint * framebuffers);
+#define glDeleteFramebuffersOES epoxy_glDeleteFramebuffersOES
+
 #include <utils/String8.h>
 #include <cutils/compiler.h>
 

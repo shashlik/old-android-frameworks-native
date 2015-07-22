@@ -25,6 +25,10 @@
 #include "GLExtensions.h"
 #include "Mesh.h"
 
+#define LOG_ALWAYS_FATAL(x) ALOGE("SHASHLIK error " x)
+
+#define LOG_ALWAYS_FATAL_IF(x,y) ALOGE("NOT FATAL " y)
+
 // ---------------------------------------------------------------------------
 namespace android {
 // ---------------------------------------------------------------------------

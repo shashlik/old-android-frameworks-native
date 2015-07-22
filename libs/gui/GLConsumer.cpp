@@ -41,7 +41,24 @@
 #include <utils/String8.h>
 #include <utils/Trace.h>
 
-EGLAPI const char* eglQueryStringImplementationANDROID(EGLDisplay dpy, EGLint name);
+// EGLAPI const char* eglQueryStringImplementationANDROID(EGLDisplay dpy, EGLint name);
+extern EGLAPI EGLint (*epoxy_eglDupNativeFenceFDANDROID)(EGLDisplay dpy, EGLSyncKHR sync);
+#define eglDupNativeFenceFDANDROID epoxy_eglDupNativeFenceFDANDROID
+extern EGLAPI void (*epoxy_glEGLImageTargetTexture2DOES)(GLenum target, GLeglImageOES image);
+#define glEGLImageTargetTexture2DOES epoxy_glEGLImageTargetTexture2DOES
+extern EGLAPI EGLBoolean (*epoxy_eglDestroyImageKHR)(EGLDisplay dpy, EGLImageKHR image);
+#define eglDestroyImageKHR epoxy_eglDestroyImageKHR
+extern EGLAPI EGLint (*epoxy_eglWaitSyncKHR)(EGLDisplay dpy, EGLSyncKHR sync, EGLint flags);
+#define eglWaitSyncKHR epoxy_eglWaitSyncKHR
+extern EGLAPI EGLint (*epoxy_eglClientWaitSyncKHR)(EGLDisplay dpy, EGLSyncKHR sync, EGLint flags, EGLTimeKHR timeout);
+#define eglClientWaitSyncKHR epoxy_eglClientWaitSyncKHR
+extern EGLAPI EGLSyncKHR (*epoxy_eglCreateSyncKHR)(EGLDisplay dpy, EGLenum type, const EGLint * attrib_list);
+#define eglCreateSyncKHR epoxy_eglCreateSyncKHR
+extern EGLAPI EGLImageKHR (*epoxy_eglCreateImageKHR)(EGLDisplay dpy, EGLContext ctx, EGLenum target, EGLClientBuffer buffer, const EGLint * attrib_list);
+#define eglCreateImageKHR epoxy_eglCreateImageKHR
+extern EGLAPI EGLBoolean (*epoxy_eglDestroySyncKHR)(EGLDisplay dpy, EGLSyncKHR sync);
+#define eglDestroySyncKHR epoxy_eglDestroySyncKHR
+
 #define CROP_EXT_STR "EGL_ANDROID_image_crop"
 
 namespace android {
@@ -94,7 +111,7 @@ sp<GraphicBuffer> GLConsumer::sReleasedTexImageBuffer;
 
 static bool hasEglAndroidImageCropImpl() {
     EGLDisplay dpy = eglGetDisplay(EGL_DEFAULT_DISPLAY);
-    const char* exts = eglQueryStringImplementationANDROID(dpy, EGL_EXTENSIONS);
+    const char* exts = eglQueryString(dpy, EGL_EXTENSIONS);
     size_t cropExtLen = strlen(CROP_EXT_STR);
     size_t extsLen = strlen(exts);
     bool equal = !strcmp(CROP_EXT_STR, exts);
@@ -879,10 +896,11 @@ EGLImageKHR GLConsumer::createImage(EGLDisplay dpy,
     EGLClientBuffer cbuf = (EGLClientBuffer)graphicBuffer->getNativeBuffer();
     EGLint attrs[] = {
         EGL_IMAGE_PRESERVED_KHR,        EGL_TRUE,
-        EGL_IMAGE_CROP_LEFT_ANDROID,    crop.left,
-        EGL_IMAGE_CROP_TOP_ANDROID,     crop.top,
-        EGL_IMAGE_CROP_RIGHT_ANDROID,   crop.right,
-        EGL_IMAGE_CROP_BOTTOM_ANDROID,  crop.bottom,
+#warning SHASHLIK WAH! (egl crop things)
+//         EGL_IMAGE_CROP_LEFT_ANDROID,    crop.left,
+//         EGL_IMAGE_CROP_TOP_ANDROID,     crop.top,
+//         EGL_IMAGE_CROP_RIGHT_ANDROID,   crop.right,
+//         EGL_IMAGE_CROP_BOTTOM_ANDROID,  crop.bottom,
         EGL_NONE,
     };
     if (!crop.isValid()) {

@@ -18,6 +18,7 @@
 #include <sys/resource.h>
 #endif
 
+#include <cutils/log.h>
 #include <cutils/sched_policy.h>
 #include <binder/IServiceManager.h>
 #include <binder/IPCThreadState.h>
@@ -139,14 +140,17 @@ void handler(int sig) {
 int main(int argc, char** argv) {
     signal(SIGSEGV, handler);   // install our handler
 
+    ALOGE("SurfaceFlinger init 1");
     // When SF is launched in its own process, limit the number of
     // binder threads to 4.
     ProcessState::self()->setThreadPoolMaxThreadCount(4);
 
+    ALOGE("SurfaceFlinger init 2 - start thread pool");
     // start the thread pool
     sp<ProcessState> ps(ProcessState::self());
     ps->startThreadPool();
 
+    ALOGE("SurfaceFlinger init 3 - create flinger");
     // instantiate surfaceflinger
     sp<SurfaceFlinger> flinger = new SurfaceFlinger();
 
@@ -155,13 +159,16 @@ int main(int argc, char** argv) {
 #endif
     set_sched_policy(0, SP_FOREGROUND);
 
+    ALOGE("SurfaceFlinger init 4 - init flinger");
     // initialize before clients can connect
     flinger->init();
 
+    ALOGE("SurfaceFlinger init 5 - publish to ServiceManager");
     // publish surface flinger
     sp<IServiceManager> sm(defaultServiceManager());
     sm->addService(String16(SurfaceFlinger::getServiceName()), flinger, false);
 
+    ALOGE("SurfaceFlinger init 6 - run!");
     // run in this thread
     flinger->run();
 

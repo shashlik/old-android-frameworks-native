@@ -33,6 +33,13 @@
 #include <utils/Trace.h>
 #include <utils/CallStack.h>
 
+extern EGLAPI EGLint (*epoxy_eglWaitSyncKHR)(EGLDisplay dpy, EGLSyncKHR sync, EGLint flags);
+#define eglWaitSyncKHR epoxy_eglWaitSyncKHR
+extern EGLAPI EGLBoolean (*epoxy_eglDestroySyncKHR)(EGLDisplay dpy, EGLSyncKHR sync);
+#define eglDestroySyncKHR epoxy_eglDestroySyncKHR
+extern EGLAPI EGLint (*epoxy_eglClientWaitSyncKHR)(EGLDisplay dpy, EGLSyncKHR sync, EGLint flags, EGLTimeKHR timeout);
+#define eglClientWaitSyncKHR epoxy_eglClientWaitSyncKHR
+
 // Macros for including the BufferQueue name in log messages
 #define ST_LOGV(x, ...) ALOGV("[%s] "x, mConsumerName.string(), ##__VA_ARGS__)
 #define ST_LOGD(x, ...) ALOGD("[%s] "x, mConsumerName.string(), ##__VA_ARGS__)
