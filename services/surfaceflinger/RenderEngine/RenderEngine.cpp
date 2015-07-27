@@ -25,15 +25,13 @@
 #include "GLExtensions.h"
 #include "Mesh.h"
 
-#define LOG_ALWAYS_FATAL(x) ALOGE("SHASHLIK error " x)
-
-#define LOG_ALWAYS_FATAL_IF(x,y) ALOGE("NOT FATAL " y)
+#include "WaylandClient.h"
 
 // ---------------------------------------------------------------------------
 namespace android {
 // ---------------------------------------------------------------------------
 
-RenderEngine* RenderEngine::create(EGLDisplay display, EGLConfig config) {
+RenderEngine* RenderEngine::create(EGLDisplay display, EGLConfig config, WaylandClient* waylandClient) {
     EGLint renderableType = 0;
     EGLint contextClientVersion = 0;
 
@@ -70,8 +68,9 @@ RenderEngine* RenderEngine::create(EGLDisplay display, EGLConfig config) {
     // now figure out what version of GL did we actually get
     // NOTE: a dummy surface is not needed if KHR_create_context is supported
 
-    EGLint attribs[] = { EGL_WIDTH, 1, EGL_HEIGHT, 1, EGL_NONE, EGL_NONE };
-    EGLSurface dummy = eglCreatePbufferSurface(display, config, attribs);
+//     EGLint attribs[] = { EGL_WIDTH, 1, EGL_HEIGHT, 1, EGL_NONE, EGL_NONE };
+//     EGLSurface dummy = eglCreateWindowSurface(display, config, attribs);
+    EGLSurface dummy = waylandClient->getSurface(display, config, 1, 1);
     LOG_ALWAYS_FATAL_IF(dummy==EGL_NO_SURFACE, "can't create dummy pbuffer");
     EGLBoolean success = eglMakeCurrent(display, dummy, dummy, ctxt);
     LOG_ALWAYS_FATAL_IF(!success, "can't make dummy pbuffer current");
@@ -111,7 +110,8 @@ RenderEngine* RenderEngine::create(EGLDisplay display, EGLConfig config) {
     ALOGI("GL_MAX_VIEWPORT_DIMS = %d", engine->getMaxViewportDims());
 
     eglMakeCurrent(display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
-    eglDestroySurface(display, dummy);
+    // do not destroy! we resize&reuse later
+//     eglDestroySurface(display, dummy);
 
     return engine;
 }

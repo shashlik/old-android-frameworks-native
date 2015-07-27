@@ -494,7 +494,7 @@ void HWComposer::eventControl(int disp, int event, int enabled) {
         if (newValue != oldValue) {
             ATRACE_CALL();
 //             ALOGE("THIS NEEDS PUTTING BACK WHEN THE DISPLAY SYSTEM IS WORKING");
-            err = mHwc->eventControl(mHwc, disp, event, enabled);
+//             err = mHwc->eventControl(mHwc, disp, event, enabled);
             if (!err) {
                 int32_t& events(mDisplayData[disp].events);
                 events = (events & ~eventBit) | newValue;
@@ -739,9 +739,9 @@ status_t HWComposer::release(int disp) {
 
 status_t HWComposer::acquire(int disp) {
     LOG_FATAL_IF(disp >= VIRTUAL_DISPLAY_ID_BASE);
-    if (mHwc) {
-        return (status_t)mHwc->blank(mHwc, disp, 0);
-    }
+//     if (mHwc) {
+//         return (status_t)mHwc->blank(mHwc, disp, 0);
+//     }
     return NO_ERROR;
 }
 

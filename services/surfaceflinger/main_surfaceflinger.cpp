@@ -33,6 +33,8 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
+#include <QCoreApplication>
+
 /** Print a demangled stack backtrace of the caller function to FILE* out. */
 static inline void print_stacktrace(FILE *out = stderr, unsigned int max_frames = 63)
 {
@@ -139,6 +141,8 @@ void handler(int sig) {
 
 int main(int argc, char** argv) {
     signal(SIGSEGV, handler);   // install our handler
+
+    QCoreApplication app(argc, argv);
 
     ALOGE("SurfaceFlinger init 1");
     // When SF is launched in its own process, limit the number of

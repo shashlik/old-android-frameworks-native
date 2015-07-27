@@ -40,9 +40,6 @@
 #include "SurfaceFlinger.h"
 #include "Layer.h"
 
-#undef LOG_ALWAYS_FATAL
-#define LOG_ALWAYS_FATAL(x) ALOGE(x)
-
 // ----------------------------------------------------------------------------
 using namespace android;
 // ----------------------------------------------------------------------------
@@ -98,13 +95,14 @@ DisplayDevice::DisplayDevice(
 
     EGLSurface surface;
     EGLint w, h;
-    EGLDisplay display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
-//     surface = eglCreateWindowSurface(display, config, window, NULL);
-//     eglQuerySurface(display, surface, EGL_WIDTH,  &mDisplayWidth);
-//     eglQuerySurface(display, surface, EGL_HEIGHT, &mDisplayHeight);
+    EGLDisplay display = eglGetDisplay(flinger->waylandClient()->display());
+//     surface = eglCreateWindowSurface(display, config, reinterpret_cast<EGLNativeWindowType>(window), NULL);
+    surface = flinger->waylandClient()->getSurface(display, config, 480, 640);
+    eglQuerySurface(display, surface, EGL_WIDTH,  &mDisplayWidth);
+    eglQuerySurface(display, surface, EGL_HEIGHT, &mDisplayHeight);
 
     mDisplay = display;
-//     mSurface = surface;
+    mSurface = surface;
     mFormat  = format;
     mPageFlipCount = 0;
     mViewport.makeInvalid();
@@ -237,14 +235,14 @@ void DisplayDevice::swapBuffers(HWComposer& hwc) const {
         EGLBoolean success = eglSwapBuffers(mDisplay, mSurface);
         if (!success) {
             EGLint error = eglGetError();
-//             if (error == EGL_CONTEXT_LOST ||
-//                     mType == DisplayDevice::DISPLAY_PRIMARY) {
-//                 LOG_ALWAYS_FATAL("eglSwapBuffers(%p, %p) failed with 0x%08x",
-//                         mDisplay, mSurface, error);
-//             } else {
+            if (error == EGL_CONTEXT_LOST ||
+                    mType == DisplayDevice::DISPLAY_PRIMARY) {
+                LOG_ALWAYS_FATAL("eglSwapBuffers(%p, %p) failed with 0x%08x",
+                        mDisplay, mSurface, error);
+            } else {
                 ALOGE("eglSwapBuffers(%p, %p) failed with 0x%08x",
                         mDisplay, mSurface, error);
-//             }
+            }
         }
     }
 

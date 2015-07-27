@@ -80,6 +80,7 @@
 
 /// NOTE Shashlik stuff here
 // #include <QX11Info>
+#include <QCoreApplication>
 /// NOTE Shashlik stuff ends
 
 /*
@@ -88,10 +89,10 @@
  */
 #define DEBUG_SCREENSHOTS   false
 
-#undef LOG_ALWAYS_FATAL
-#define LOG_ALWAYS_FATAL(x) ALOGE(x)
-#undef LOG_ALWAYS_FATAL_IF
-#define LOG_ALWAYS_FATAL_IF(x,y) ALOGE("NOT FATAL - " y)
+// #undef LOG_ALWAYS_FATAL
+// #define LOG_ALWAYS_FATAL(x) ALOGE(x)
+// #undef LOG_ALWAYS_FATAL_IF
+// #define LOG_ALWAYS_FATAL_IF(x,y) ALOGE_IF(x, "NOT FATAL - " y)
 
 // EGLAPI const char* eglQueryStringImplementationANDROID(EGLDisplay dpy, EGLint name);
 
@@ -178,7 +179,8 @@ SurfaceFlinger::SurfaceFlinger()
         mBootFinished(false),
         mPrimaryHWVsyncEnabled(false),
         mHWVsyncAvailable(false),
-        mDaltonize(false)
+        mDaltonize(false),
+        m_waylandClient(0)
 {
     ALOGI("SurfaceFlinger is starting");
 
@@ -358,7 +360,7 @@ status_t SurfaceFlinger::selectConfigForAttribute(
 
     if (n) {
         if (attribute != EGL_NONE) {
-            for (int i=0 ; i<n ; i++) {
+            for (int i=0 ; i<numConfigs ; i++) {
                 EGLint value = 0;
                 eglGetConfigAttrib(dpy, configs[i], attribute, &value);
                 if (wanted == value) {
@@ -441,9 +443,9 @@ status_t SurfaceFlinger::selectEGLConfig(EGLDisplay display, EGLint nativeVisual
     EGLAttributeVector attribs;
     if (renderableType) {
         attribs[EGL_RENDERABLE_TYPE]            = renderableType;
-        attribs[EGL_RECORDABLE_ANDROID]         = EGL_TRUE;
-        attribs[EGL_SURFACE_TYPE]               = EGL_WINDOW_BIT|EGL_PBUFFER_BIT;
-        attribs[EGL_FRAMEBUFFER_TARGET_ANDROID] = EGL_TRUE;
+//         attribs[EGL_RECORDABLE_ANDROID]         = EGL_TRUE;
+        attribs[EGL_SURFACE_TYPE]               = EGL_WINDOW_BIT;//|EGL_PBUFFER_BIT;
+//         attribs[EGL_FRAMEBUFFER_TARGET_ANDROID] = EGL_TRUE;
         attribs[EGL_RED_SIZE]                   = 8;
         attribs[EGL_GREEN_SIZE]                 = 8;
         attribs[EGL_BLUE_SIZE]                  = 8;
@@ -538,9 +540,14 @@ void SurfaceFlinger::init() {
     status_t err;
     Mutex::Autolock _l(mStateLock);
 
+    m_waylandClient = new WaylandClient();
+    while(m_waylandClient->hasShellSurface() == false) {
+        qApp->processEvents(QEventLoop::WaitForMoreEvents);
+    }
+
     // initialize EGL for the default display
     /// NOTE Shashlik
-    mEGLDisplay = eglGetDisplay(EGL_DEFAULT_DISPLAY);
+    mEGLDisplay = eglGetDisplay(m_waylandClient->display());
     EGLint majorVersion;
     EGLint minorVersion;
     EGLBoolean initRet = eglInitialize(mEGLDisplay, &majorVersion, &minorVersion);
@@ -565,7 +572,7 @@ void SurfaceFlinger::init() {
         // still didn't work, probably because we're on the emulator...
         // try a simplified query
         ALOGW("no suitable EGLConfig found, trying a simpler query - error is %d", err);
-        err = selectEGLConfig(mEGLDisplay, mHwc->getVisualID(), 0, &mEGLConfig);
+        err = selectEGLConfig(mEGLDisplay, mHwc->getVisualID(), 0   , &mEGLConfig);
     }
 
     if (err != NO_ERROR) {
@@ -587,7 +594,7 @@ void SurfaceFlinger::init() {
     ALOGI("EGLSurface: %d-%d-%d-%d, config=%p", r, g, b, a, mEGLConfig);
 
     // get a RenderEngine for the given display / config (can't fail)
-    mRenderEngine = RenderEngine::create(mEGLDisplay, mEGLConfig);
+    mRenderEngine = RenderEngine::create(mEGLDisplay, mEGLConfig, m_waylandClient);
 
     // retrieve the EGL context that was selected/created
     mEGLContext = mRenderEngine->getEGLContext();
@@ -899,6 +906,7 @@ void SurfaceFlinger::eventControl(int disp, int event, int enabled) {
 
 void SurfaceFlinger::onMessageReceived(int32_t what) {
     ATRACE_CALL();
+    qApp->processEvents();
     switch (what) {
     case MessageQueue::TRANSACTION:
         handleMessageTransaction();
@@ -912,6 +920,7 @@ void SurfaceFlinger::onMessageReceived(int32_t what) {
         handleMessageRefresh();
         break;
     }
+    qApp->processEvents();
 }
 
 void SurfaceFlinger::handleMessageTransaction() {
@@ -2648,20 +2657,20 @@ SurfaceFlinger::getLayerSortedByZForHwcDisplay(int id) {
 
 bool SurfaceFlinger::startDdmConnection()
 {
-    void* libddmconnection_dso =
-            dlopen("libsurfaceflinger_ddmconnection.so", RTLD_NOW);
-    if (!libddmconnection_dso) {
+//     void* libddmconnection_dso =
+//             dlopen("libsurfaceflinger_ddmconnection.so", RTLD_NOW);
+//     if (!libddmconnection_dso) {
         return false;
-    }
-    void (*DdmConnection_start)(const char* name);
-    DdmConnection_start =
-            (typeof DdmConnection_start)dlsym(libddmconnection_dso, "DdmConnection_start");
-    if (!DdmConnection_start) {
-        dlclose(libddmconnection_dso);
-        return false;
-    }
-    (*DdmConnection_start)(getServiceName());
-    return true;
+//     }
+//     void (*DdmConnection_start)(const char* name);
+//     DdmConnection_start =
+//             (typeof DdmConnection_start)dlsym(libddmconnection_dso, "DdmConnection_start");
+//     if (!DdmConnection_start) {
+//         dlclose(libddmconnection_dso);
+//         return false;
+//     }
+//     (*DdmConnection_start)(getServiceName());
+//     return true;
 }
 
 status_t SurfaceFlinger::onTransact(

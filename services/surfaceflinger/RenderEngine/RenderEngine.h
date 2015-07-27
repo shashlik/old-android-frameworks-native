@@ -25,6 +25,8 @@
 #include <EGL/eglext.h>
 #include <ui/mat4.h>
 
+class WaylandClient;
+
 // ---------------------------------------------------------------------------
 namespace android {
 // ---------------------------------------------------------------------------
@@ -55,7 +57,7 @@ protected:
     virtual ~RenderEngine() = 0;
 
 public:
-    static RenderEngine* create(EGLDisplay display, EGLConfig config);
+    static RenderEngine* create(EGLDisplay display, EGLConfig config, WaylandClient* waylandClient);
 
     // dump the extension strings. always call the base class.
     virtual void dump(String8& result);

@@ -55,6 +55,9 @@
 #include "DisplayHardware/HWComposer.h"
 #include "Effects/Daltonizer.h"
 
+//NOTE Shashlik
+#include "WaylandClient.h"
+
 namespace android {
 
 // ---------------------------------------------------------------------------
@@ -133,7 +136,11 @@ public:
         return *mRenderEngine;
     }
 
+    WaylandClient* waylandClient() const {
+        return m_waylandClient;
+    }
 private:
+    WaylandClient* m_waylandClient;
     friend class Client;
     friend class DisplayEventConnection;
     friend class Layer;
