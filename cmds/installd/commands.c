@@ -27,6 +27,7 @@ dir_rec_t android_app_dir;
 dir_rec_t android_app_private_dir;
 dir_rec_t android_app_lib_dir;
 dir_rec_t android_media_dir;
+dir_rec_t shashlik_root;
 dir_rec_array_t android_system_dirs;
 
 int install(const char *pkgname, uid_t uid, gid_t gid, const char *seinfo)
@@ -99,12 +100,12 @@ int install(const char *pkgname, uid_t uid, gid_t gid, const char *seinfo)
 //         return -errno;
 //     }
 
-    if (chown(pkgdir, uid, gid) < 0) {
-        ALOGE("cannot chown dir '%s': %s\n", pkgdir, strerror(errno));
-        unlink(libsymlink);
-        unlink(pkgdir);
-        return -1;
-    }
+//     if (chown(pkgdir, uid, gid) < 0) {
+//         ALOGE("cannot chown dir '%s': %s\n", pkgdir, strerror(errno));
+//         unlink(libsymlink);
+//         unlink(pkgdir);
+//         return -1;
+//     }
 
     return 0;
 }
@@ -160,16 +161,16 @@ int fix_uid(const char *pkgname, uid_t uid, gid_t gid)
         return -1;
     }
 
-    if (chmod(pkgdir, 0751) < 0) {
-        ALOGE("cannot chmod dir '%s': %s\n", pkgdir, strerror(errno));
-        unlink(pkgdir);
-        return -errno;
-    }
-    if (chown(pkgdir, uid, gid) < 0) {
-        ALOGE("cannot chown dir '%s': %s\n", pkgdir, strerror(errno));
-        unlink(pkgdir);
-        return -errno;
-    }
+//     if (chmod(pkgdir, 0751) < 0) {
+//         ALOGE("cannot chmod dir '%s': %s\n", pkgdir, strerror(errno));
+//         unlink(pkgdir);
+//         return -errno;
+//     }
+//     if (chown(pkgdir, uid, gid) < 0) {
+//         ALOGE("cannot chown dir '%s': %s\n", pkgdir, strerror(errno));
+//         unlink(pkgdir);
+//         return -errno;
+//     }
 
     return 0;
 }
@@ -253,12 +254,12 @@ int make_user_data(const char *pkgname, uid_t uid, userid_t userid)
 //         return -errno;
 //     }
 
-    if (chown(pkgdir, uid, uid) < 0) {
-        ALOGE("cannot chown dir '%s': %s\n", pkgdir, strerror(errno));
-        unlink(libsymlink);
-        unlink(pkgdir);
-        return -errno;
-    }
+//     if (chown(pkgdir, uid, uid) < 0) {
+//         ALOGE("cannot chown dir '%s': %s\n", pkgdir, strerror(errno));
+//         unlink(libsymlink);
+//         unlink(pkgdir);
+//         return -errno;
+//     }
 
     return 0;
 }
@@ -558,14 +559,15 @@ int create_cache_path(char path[PKG_PATH_MAX], const char *src)
         return -1;
     }
 
-    dstlen = srclen + strlen(DALVIK_CACHE_PREFIX) + 
+    dstlen = srclen + SHASHLIK_ROOT + strlen(DALVIK_CACHE_PREFIX) +
         strlen(DALVIK_CACHE_POSTFIX) + 1;
     
     if (dstlen > PKG_PATH_MAX) {
         return -1;
     }
 
-    sprintf(path,"%s%s%s",
+    sprintf(path,"%s%s%s%s",
+            shashlik_root.path,
             DALVIK_CACHE_PREFIX,
             src + 1, /* skip the leading / */
             DALVIK_CACHE_POSTFIX);
@@ -582,7 +584,7 @@ int create_cache_path(char path[PKG_PATH_MAX], const char *src)
 static void run_dexopt(int zip_fd, int odex_fd, const char* input_file_name,
     const char* output_file_name, const char* dexopt_flags)
 {
-    static const char* DEX_OPT_BIN = "/system/bin/dexopt";
+    static const char* DEX_OPT_BIN = SHASHLIK_ROOT "/system/bin/dexopt";
     static const int MAX_INT_LEN = 12;      // '-'+10dig+'\0' -OR- 0x+8dig
     char zip_num[MAX_INT_LEN];
     char odex_num[MAX_INT_LEN];
@@ -599,7 +601,7 @@ static void run_dexopt(int zip_fd, int odex_fd, const char* input_file_name,
 static void run_dex2oat(int zip_fd, int oat_fd, const char* input_file_name,
     const char* output_file_name, const char* dexopt_flags)
 {
-    static const char* DEX2OAT_BIN = "/system/bin/dex2oat";
+    static const char* DEX2OAT_BIN = SHASHLIK_ROOT "/system/bin/dex2oat";
     static const int MAX_INT_LEN = 12;      // '-'+10dig+'\0' -OR- 0x+8dig
     char zip_fd_arg[strlen("--zip-fd=") + MAX_INT_LEN];
     char zip_location_arg[strlen("--zip-location=") + PKG_PATH_MAX];
@@ -699,16 +701,16 @@ int dexopt(const char *apk_path, uid_t uid, int is_public)
         ALOGE("installd cannot open '%s' for output during dexopt\n", out_path);
         goto fail;
     }
-    if (fchmod(out_fd,
-               S_IRUSR|S_IWUSR|S_IRGRP |
-               (is_public ? S_IROTH : 0)) < 0) {
-        ALOGE("installd cannot chmod '%s' during dexopt\n", out_path);
-        goto fail;
-    }
-    if (fchown(out_fd, AID_SYSTEM, uid) < 0) {
-        ALOGE("installd cannot chown '%s' during dexopt\n", out_path);
-        goto fail;
-    }
+//     if (fchmod(out_fd,
+//                S_IRUSR|S_IWUSR|S_IRGRP |
+//                (is_public ? S_IROTH : 0)) < 0) {
+//         ALOGE("installd cannot chmod '%s' during dexopt\n", out_path);
+//         goto fail;
+//     }
+//     if (fchown(out_fd, AID_SYSTEM, uid) < 0) {
+//         ALOGE("installd cannot chown '%s' during dexopt\n", out_path);
+//         goto fail;
+//     }
 
     ALOGV("DexInv: --- BEGIN '%s' ---\n", apk_path);
 
@@ -716,14 +718,14 @@ int dexopt(const char *apk_path, uid_t uid, int is_public)
     pid = fork();
     if (pid == 0) {
         /* child -- drop privileges before continuing */
-        if (setgid(uid) != 0) {
-            ALOGE("setgid(%d) failed in installd during dexopt\n", uid);
-            exit(64);
-        }
-        if (setuid(uid) != 0) {
-            ALOGE("setuid(%d) failed in installd during dexopt\n", uid);
-            exit(65);
-        }
+//         if (setgid(uid) != 0) {
+//             ALOGE("setgid(%d) failed in installd during dexopt\n", uid);
+//             exit(64);
+//         }
+//         if (setuid(uid) != 0) {
+//             ALOGE("setuid(%d) failed in installd during dexopt\n", uid);
+//             exit(65);
+//         }
         // drop capabilities
         struct __user_cap_header_struct capheader;
         struct __user_cap_data_struct capdata[2];
@@ -783,7 +785,7 @@ void mkinnerdirs(char* path, int basepos, mode_t mode, int uid, int gid,
             if (lstat(path, statbuf) < 0) {
                 ALOGV("Making directory: %s\n", path);
                 if (mkdir(path, mode) == 0) {
-                    chown(path, uid, gid);
+//                     chown(path, uid, gid);
                 } else {
                     ALOGW("Unable to make directory %s: %s\n", path, strerror(errno));
                 }
@@ -815,11 +817,11 @@ int movefileordir(char* srcpath, char* dstpath, int dstbasepos,
                 dstuid, dstgid, statbuf);
         ALOGV("Renaming %s to %s (uid %d)\n", srcpath, dstpath, dstuid);
         if (rename(srcpath, dstpath) >= 0) {
-            if (chown(dstpath, dstuid, dstgid) < 0) {
-                ALOGE("cannot chown %s: %s\n", dstpath, strerror(errno));
-                unlink(dstpath);
-                return 1;
-            }
+//             if (chown(dstpath, dstuid, dstgid) < 0) {
+//                 ALOGE("cannot chown %s: %s\n", dstpath, strerror(errno));
+//                 unlink(dstpath);
+//                 return 1;
+//             }
         } else {
             ALOGW("Unable to rename %s to %s: %s\n",
                 srcpath, dstpath, strerror(errno));
@@ -1052,16 +1054,16 @@ int linklib(const char* pkgname, const char* asecLibDir, int userId)
 
     if (stat(pkgdir, &s) < 0) return -1;
 
-    if (chown(pkgdir, AID_INSTALL, AID_INSTALL) < 0) {
-        ALOGE("failed to chown '%s': %s\n", pkgdir, strerror(errno));
-        return -1;
-    }
+//     if (chown(pkgdir, AID_INSTALL, AID_INSTALL) < 0) {
+//         ALOGE("failed to chown '%s': %s\n", pkgdir, strerror(errno));
+//         return -1;
+//     }
 
-    if (chmod(pkgdir, 0700) < 0) {
-        ALOGE("linklib() 1: failed to chmod '%s': %s\n", pkgdir, strerror(errno));
-        rc = -1;
-        goto out;
-    }
+//     if (chmod(pkgdir, 0700) < 0) {
+//         ALOGE("linklib() 1: failed to chmod '%s': %s\n", pkgdir, strerror(errno));
+//         rc = -1;
+//         goto out;
+//     }
 
     if (lstat(libsymlink, &libStat) < 0) {
         if (errno != ENOENT) {
@@ -1097,10 +1099,10 @@ out:
         rc = -errno;
     }
 
-    if (chown(pkgdir, s.st_uid, s.st_gid) < 0) {
-        ALOGE("failed to chown '%s' : %s\n", pkgdir, strerror(errno));
-        return -errno;
-    }
+//     if (chown(pkgdir, s.st_uid, s.st_gid) < 0) {
+//         ALOGE("failed to chown '%s' : %s\n", pkgdir, strerror(errno));
+//         return -errno;
+//     }
 
     return rc;
 }

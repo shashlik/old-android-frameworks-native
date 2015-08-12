@@ -73,7 +73,7 @@
 #define DALVIK_CACHE_PREFIX    "/data/dalvik-cache/"
 #define DALVIK_CACHE_POSTFIX   "/classes.dex"
 
-#define UPDATE_COMMANDS_DIR_PREFIX  "/system/etc/updatecmds/"
+#define UPDATE_COMMANDS_DIR_PREFIX  SHASHLIK_ROOT "/system/etc/updatecmds/"
 
 #define PKG_NAME_MAX  128   /* largest allowed package name */
 #define PKG_PATH_MAX  256   /* max size of any path we use */
@@ -96,6 +96,7 @@ extern dir_rec_t android_app_lib_dir;
 extern dir_rec_t android_data_dir;
 extern dir_rec_t android_asec_dir;
 extern dir_rec_t android_media_dir;
+extern dir_rec_t shashlik_root;
 extern dir_rec_array_t android_system_dirs;
 
 typedef struct cache_dir_struct {

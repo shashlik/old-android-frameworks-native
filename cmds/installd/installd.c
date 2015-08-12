@@ -294,6 +294,11 @@ int initialize_globals() {
         return -1;
     }
 
+    // Get the Shashlik root directory
+    if (get_path_from_env(&shashlik_root, "SHASHLIK_ROOT") < 0) {
+        return -1;
+    }
+
     // Take note of the system and vendor directories.
     android_system_dirs.count = 2;
 
