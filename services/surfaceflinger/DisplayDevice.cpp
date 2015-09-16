@@ -95,8 +95,10 @@ DisplayDevice::DisplayDevice(
 
     EGLSurface surface;
     EGLint w, h;
+    ALOGI("Getting display from waylandClient");
     EGLDisplay display = eglGetDisplay(flinger->waylandClient()->display());
 //     surface = eglCreateWindowSurface(display, config, reinterpret_cast<EGLNativeWindowType>(window), NULL);
+    ALOGI("Getting surface from waylandClient");
     surface = flinger->waylandClient()->getSurface(display, config, 480, 640);
     eglQuerySurface(display, surface, EGL_WIDTH,  &mDisplayWidth);
     eglQuerySurface(display, surface, EGL_HEIGHT, &mDisplayHeight);

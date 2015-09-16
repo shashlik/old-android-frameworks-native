@@ -541,9 +541,7 @@ void SurfaceFlinger::init() {
     Mutex::Autolock _l(mStateLock);
 
     m_waylandClient = new WaylandClient();
-    while(m_waylandClient->hasShellSurface() == false) {
-        qApp->processEvents(QEventLoop::WaitForMoreEvents);
-    }
+    m_waylandClient->waitForReady();
 
     // initialize EGL for the default display
     /// NOTE Shashlik
@@ -606,16 +604,17 @@ void SurfaceFlinger::init() {
     LOG_ALWAYS_FATAL_IF(mEGLContext == EGL_NO_CONTEXT,
             "couldn't create EGLContext");
 
+    ALOGI("Initialise our non-virtual displays");
     // initialize our non-virtual displays
     for (size_t i=0 ; i<DisplayDevice::NUM_BUILTIN_DISPLAY_TYPES ; i++) {
         DisplayDevice::DisplayType type((DisplayDevice::DisplayType)i);
         // set-up the displays that are already connected
+        ALOGI("Checking if connected and primary...");
         if (mHwc->isConnected(i) || type==DisplayDevice::DISPLAY_PRIMARY) {
             // All non-virtual displays are currently considered secure.
             bool isSecure = true;
             createBuiltinDisplayLocked(type);
             wp<IBinder> token = mBuiltinDisplays[i];
-
             sp<BufferQueue> bq = new BufferQueue(new GraphicBufferAlloc());
             sp<FramebufferSurface> fbs = new FramebufferSurface(*mHwc, i, bq);
             sp<DisplayDevice> hw = new DisplayDevice(this,
@@ -633,6 +632,7 @@ void SurfaceFlinger::init() {
         }
     }
 
+    ALOGI("Make the context current...");
     // make the GLContext current so that we can create textures when creating Layers
     // (which may happens before we render something)
     getDefaultDisplayDevice()->makeCurrent(mEGLDisplay, mEGLContext);
@@ -646,6 +646,7 @@ void SurfaceFlinger::init() {
     mSFEventThread = new EventThread(sfVsyncSrc);
     mEventQueue.setEventThread(mSFEventThread);
 
+    ALOGI("Event control thread initialisation");
     mEventControlThread = new EventControlThread(this);
     mEventControlThread->run("EventControl", PRIORITY_URGENT_DISPLAY);
 
@@ -657,9 +658,11 @@ void SurfaceFlinger::init() {
     // initialize our drawing state
     mDrawingState = mCurrentState;
 
+    ALOGI("Initialising displays");
     // set initial conditions (e.g. unblank default device)
     initializeDisplays();
 
+    ALOGI("Start boot animation");
     // start boot animation
     startBootAnim();
 }
