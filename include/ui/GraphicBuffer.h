@@ -99,6 +99,7 @@ public:
     status_t unlock();
 
     ANativeWindowBuffer* getNativeBuffer() const;
+    void* getWaylandBuffer();
 
     // for debugging
     static void dumpAllocationsToSystemLog();

@@ -122,6 +122,15 @@ ANativeWindowBuffer* GraphicBuffer::getNativeBuffer() const
             const_cast<GraphicBuffer*>(this));
 }
 
+void* GraphicBuffer::getWaylandBuffer()
+{
+    if (handle) {
+        GraphicBufferAllocator& allocator(GraphicBufferAllocator::get());
+        return allocator.getWaylandBuffer(handle);
+    }
+    return 0;
+}
+
 status_t GraphicBuffer::reallocate(uint32_t w, uint32_t h, PixelFormat f,
         uint32_t reqUsage)
 {
