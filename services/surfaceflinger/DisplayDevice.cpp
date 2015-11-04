@@ -100,8 +100,10 @@ DisplayDevice::DisplayDevice(
 //     surface = eglCreateWindowSurface(display, config, reinterpret_cast<EGLNativeWindowType>(window), NULL);
     ALOGI("Getting surface from waylandClient");
     surface = flinger->waylandClient()->getSurface(display, config, 480, 640);
-    eglQuerySurface(display, surface, EGL_WIDTH,  &mDisplayWidth);
-    eglQuerySurface(display, surface, EGL_HEIGHT, &mDisplayHeight);
+//     eglQuerySurface(display, surface, EGL_WIDTH,  &mDisplayWidth);
+//     eglQuerySurface(display, surface, EGL_HEIGHT, &mDisplayHeight);
+    mDisplayWidth = 480;
+    mDisplayHeight = 640;
 
     mDisplay = display;
     mSurface = surface;
@@ -133,7 +135,7 @@ DisplayDevice::DisplayDevice(
 
 DisplayDevice::~DisplayDevice() {
     if (mSurface != EGL_NO_SURFACE) {
-        eglDestroySurface(mDisplay, mSurface);
+//         eglDestroySurface(mDisplay, mSurface);
         mSurface = EGL_NO_SURFACE;
     }
 }
