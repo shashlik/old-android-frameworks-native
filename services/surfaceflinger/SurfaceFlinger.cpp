@@ -212,9 +212,10 @@ void SurfaceFlinger::onFirstRef()
 
 SurfaceFlinger::~SurfaceFlinger()
 {
-    EGLDisplay display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
+    EGLDisplay display = eglGetDisplay(m_waylandClient->display());
+//     EGLDisplay display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
     eglMakeCurrent(display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
-    eglTerminate(display);
+//     eglTerminate(display);
 }
 
 void SurfaceFlinger::binderDied(const wp<IBinder>& who)
@@ -636,6 +637,9 @@ void SurfaceFlinger::init() {
     // make the GLContext current so that we can create textures when creating Layers
     // (which may happens before we render something)
     getDefaultDisplayDevice()->makeCurrent(mEGLDisplay, mEGLContext);
+
+    GraphicBufferAllocator& alloc(GraphicBufferAllocator::get());
+    alloc.setWaylandClient(m_waylandClient);
 
     // start the EventThread
     sp<VSyncSource> vsyncSrc = new DispSyncSource(&mPrimaryDispSync,
@@ -1682,12 +1686,17 @@ void SurfaceFlinger::invalidateLayerStack(uint32_t layerStack,
 
 void SurfaceFlinger::handlePageFlip()
 {
+    ALOGD("Flippin' dem pages, tho!\n");
+    GraphicBufferAllocator& alloc = GraphicBufferAllocator::get();
+    alloc.setWaylandClient(m_waylandClient);
     Region dirtyRegion;
 
+    getDefaultDisplayDevice()->makeCurrent(mEGLDisplay, mEGLContext);
     bool visibleRegions = false;
     const LayerVector& layers(mDrawingState.layersSortedByZ);
     const size_t count = layers.size();
     for (size_t i=0 ; i<count ; i++) {
+        ALOGD("Flipping page %d\n", i);
         const sp<Layer>& layer(layers[i]);
         const Region dirty(layer->latchBuffer(visibleRegions));
         const Layer::State& s(layer->getDrawingState());
