@@ -46,6 +46,10 @@ GraphicBufferAllocator::GraphicBufferAllocator()
     }
 }
 
+void GraphicBufferAllocator::setWaylandClient(WaylandClient* waylandClient) {
+    mAllocDev->setWaylandClient(mAllocDev, waylandClient);
+}
+
 GraphicBufferAllocator::~GraphicBufferAllocator()
 {
     gralloc_close(mAllocDev);
@@ -127,6 +131,10 @@ status_t GraphicBufferAllocator::alloc(uint32_t w, uint32_t h, PixelFormat forma
     }
 
     return err;
+}
+
+void* GraphicBufferAllocator::getWaylandBuffer(buffer_handle_t handle) {
+    return (void*)mAllocDev->getWaylandBuffer(mAllocDev, handle);
 }
 
 status_t GraphicBufferAllocator::free(buffer_handle_t handle)

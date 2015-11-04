@@ -70,6 +70,10 @@ public:
     void dump(String8& res) const;
     static void dumpToSystemLog();
 
+    // SHASHLIK
+    void setWaylandClient(WaylandClient* waylandClient);
+    void* getWaylandBuffer(buffer_handle_t handle);
+
 private:
     struct alloc_rec_t {
         uint32_t w;
