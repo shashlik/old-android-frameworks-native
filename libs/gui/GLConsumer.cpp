@@ -110,16 +110,17 @@ Mutex GLConsumer::sStaticInitLock;
 sp<GraphicBuffer> GLConsumer::sReleasedTexImageBuffer;
 
 static bool hasEglAndroidImageCropImpl() {
-    EGLDisplay dpy = eglGetDisplay(EGL_DEFAULT_DISPLAY);
-    const char* exts = eglQueryString(dpy, EGL_EXTENSIONS);
-    size_t cropExtLen = strlen(CROP_EXT_STR);
-    size_t extsLen = strlen(exts);
-    bool equal = !strcmp(CROP_EXT_STR, exts);
-    bool atStart = !strncmp(CROP_EXT_STR " ", exts, cropExtLen+1);
-    bool atEnd = (cropExtLen+1) < extsLen &&
-            !strcmp(" " CROP_EXT_STR, exts + extsLen - (cropExtLen+1));
-    bool inMiddle = strstr(exts, " " CROP_EXT_STR " ");
-    return equal || atStart || atEnd || inMiddle;
+//     EGLDisplay dpy = eglGetDisplay(EGL_DEFAULT_DISPLAY);
+//     const char* exts = eglQueryString(dpy, EGL_EXTENSIONS);
+//     size_t cropExtLen = strlen(CROP_EXT_STR);
+//     size_t extsLen = strlen(exts);
+//     bool equal = !strcmp(CROP_EXT_STR, exts);
+//     bool atStart = !strncmp(CROP_EXT_STR " ", exts, cropExtLen+1);
+//     bool atEnd = (cropExtLen+1) < extsLen &&
+//             !strcmp(" " CROP_EXT_STR, exts + extsLen - (cropExtLen+1));
+//     bool inMiddle = strstr(exts, " " CROP_EXT_STR " ");
+//     return equal || atStart || atEnd || inMiddle;
+    return false;
 }
 
 static bool hasEglAndroidImageCrop() {
@@ -497,6 +498,7 @@ status_t GLConsumer::checkAndUpdateEglStateLocked(bool contextCheck) {
             mEglContext = ctx;
         }
     }
+    ST_LOGD("checkAndUpdateEglState: EGLDisplay and Context are %p and %p respectively", dpy, ctx);
 
     if (mEglDisplay != dpy || dpy == EGL_NO_DISPLAY) {
         ST_LOGE("checkAndUpdateEglState: invalid current EGLDisplay");
@@ -894,6 +896,7 @@ nsecs_t GLConsumer::getFrameNumber() {
 EGLImageKHR GLConsumer::createImage(EGLDisplay dpy,
         const sp<GraphicBuffer>& graphicBuffer, const Rect& crop) {
     EGLClientBuffer cbuf = (EGLClientBuffer)graphicBuffer->getNativeBuffer();
+    ST_LOGD("Attempting to create an image from cbuf=%p", cbuf);
     EGLint attrs[] = {
         EGL_IMAGE_PRESERVED_KHR,        EGL_TRUE,
 #warning SHASHLIK WAH! (egl crop things)
@@ -913,11 +916,14 @@ EGLImageKHR GLConsumer::createImage(EGLDisplay dpy,
         // removes this restriction if there is hardware that can support it.
         attrs[2] = EGL_NONE;
     }
+
+    EGLClientBuffer wlBuffer = (EGLClientBuffer)graphicBuffer->getWaylandBuffer();
+
     EGLImageKHR image = eglCreateImageKHR(dpy, EGL_NO_CONTEXT,
-            EGL_NATIVE_BUFFER_ANDROID, cbuf, attrs);
+            EGL_WAYLAND_BUFFER_WL, wlBuffer, attrs);
     if (image == EGL_NO_IMAGE_KHR) {
         EGLint error = eglGetError();
-        ST_LOGE("error creating EGLImage: %#x", error);
+        ST_LOGE("error creating EGLImage on error: %#x, attempted to create it from buffer=%p", error, wlBuffer);
     }
     return image;
 }
