@@ -22,8 +22,9 @@
 #include <math.h>
 #include <dlfcn.h>
 
-#include <EGL/egl.h>
-#include <EGL/eglext.h>
+// #include <EGL/egl.h>
+// #include <EGL/eglext.h>
+#include <epoxy/egl.h>
 
 #include <cutils/log.h>
 #include <cutils/properties.h>
@@ -212,7 +213,7 @@ void SurfaceFlinger::onFirstRef()
 
 SurfaceFlinger::~SurfaceFlinger()
 {
-    EGLDisplay display = eglGetDisplay(m_waylandClient->display());
+    EGLDisplay display = eglGetDisplay(m_waylandClient->getDisplay());
 //     EGLDisplay display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
     eglMakeCurrent(display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
 //     eglTerminate(display);
@@ -541,12 +542,13 @@ void SurfaceFlinger::init() {
     status_t err;
     Mutex::Autolock _l(mStateLock);
 
-    m_waylandClient = new WaylandClient();
-    m_waylandClient->waitForReady();
+    m_waylandClient = WaylandClient::getInstance();
+    m_waylandClient->connect();
+//     m_waylandClient->waitForReady();
 
     // initialize EGL for the default display
     /// NOTE Shashlik
-    mEGLDisplay = eglGetDisplay(m_waylandClient->display());
+    mEGLDisplay = eglGetDisplay(m_waylandClient->getDisplay());
     EGLint majorVersion;
     EGLint minorVersion;
     EGLBoolean initRet = eglInitialize(mEGLDisplay, &majorVersion, &minorVersion);
@@ -3216,10 +3218,10 @@ SurfaceFlinger::DisplayDeviceState::DisplayDeviceState(DisplayDevice::DisplayTyp
 }; // namespace android
 
 
-#if defined(__gl_h_)
-#error "don't include gl/gl.h in this file"
-#endif
+// #if defined(__gl_h_)
+// #error "don't include gl/gl.h in this file"
+// #endif
 
-#if defined(__gl2_h_)
-#error "don't include gl2/gl2.h in this file"
-#endif
+// #if defined(__gl2_h_)
+// #error "don't include gl2/gl2.h in this file"
+// #endif

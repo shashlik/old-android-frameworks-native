@@ -24,10 +24,12 @@
 #include <utils/SortedVector.h>
 #include <utils/Singleton.h>
 
-#include <EGL/egl.h>
-#include <EGL/eglext.h>
-#include <GLES/gl.h>
-#include <GLES/glext.h>
+// #include <EGL/egl.h>
+// #include <EGL/eglext.h>
+#include <epoxy/egl.h>
+// #include <GLES/gl.h>
+// #include <GLES/glext.h>
+#include <epoxy/gl.h>
 
 namespace android {
 // ---------------------------------------------------------------------------

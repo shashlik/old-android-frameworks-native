@@ -21,7 +21,8 @@
 #include <stdint.h>
 #include <sys/types.h>
 
-#include <GLES2/gl2.h>
+// #include <GLES2/gl2.h>
+#include <epoxy/gl.h>
 
 #include "RenderEngine.h"
 #include "ProgramCache.h"

@@ -26,7 +26,8 @@
 
 #include <ui/Rect.h>
 
-#include <EGL/egl.h>
+// #include <EGL/egl.h>
+#include <epoxy/egl.h>
 
 #include <hardware/hardware.h>
 #include <gui/Surface.h>

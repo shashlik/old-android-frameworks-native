@@ -40,6 +40,8 @@
 #include "SurfaceFlinger.h"
 #include "Layer.h"
 
+#include "WaylandWindow.h"
+
 // ----------------------------------------------------------------------------
 using namespace android;
 // ----------------------------------------------------------------------------
@@ -73,11 +75,15 @@ DisplayDevice::DisplayDevice(
       mLayerStack(NO_LAYER_STACK),
       mOrientation()
 {
-    mNativeWindow = new Surface(producer, false);
-    ANativeWindow* const window = mNativeWindow.get();
+//     mNativeWindow = new Surface(producer, false);
+//     ANativeWindow* const window = mNativeWindow.get();
+    mNativeWindow = 0;
+    WaylandWindow* window = new WaylandWindow(480, 640);
+    window->init();
+//     mNativeWindow = window->getNative();
 
-    int format;
-    window->query(window, NATIVE_WINDOW_FORMAT, &format);
+    int format = HAL_PIXEL_FORMAT_RGBA_8888;
+//     window->query(window, NATIVE_WINDOW_FORMAT, &format);
 
     // Make sure that composition can never be stalled by a virtual display
     // consumer that isn't processing buffers fast enough. We have to do this
@@ -86,8 +92,8 @@ DisplayDevice::DisplayDevice(
     // * In makeCurrent(), using eglSwapInterval. Some EGL drivers set the
     //   window's swap interval in eglMakeCurrent, so they'll override the
     //   interval we set here.
-    if (mType >= DisplayDevice::DISPLAY_VIRTUAL)
-        window->setSwapInterval(window, 0);
+//     if (mType >= DisplayDevice::DISPLAY_VIRTUAL)
+//         window->setSwapInterval(window, 0);
 
     /*
      * Create our display's surface
@@ -95,12 +101,15 @@ DisplayDevice::DisplayDevice(
 
     EGLSurface surface;
     EGLint w, h;
+    EGLBoolean err;
     ALOGI("Getting display from waylandClient");
-    EGLDisplay display = eglGetDisplay(flinger->waylandClient()->display());
+    EGLDisplay display = eglGetDisplay(flinger->waylandClient()->getDisplay());
 //     surface = eglCreateWindowSurface(display, config, reinterpret_cast<EGLNativeWindowType>(window), NULL);
-    ALOGI("Getting surface from waylandClient");
-    surface = flinger->waylandClient()->getSurface(display, config, 480, 640);
-//     eglQuerySurface(display, surface, EGL_WIDTH,  &mDisplayWidth);
+    surface = eglCreateWindowSurface(display, config, window->getNative(), NULL);
+//     ALOGI("Getting surface from waylandClient");
+//     surface = flinger->waylandClient()->getSurface(display, config, 480, 640);
+    err = eglQuerySurface(display, surface, EGL_WIDTH,  &mDisplayWidth);
+    ALOGI("Queried surface, error was %s and returned width was %d", flinger->waylandClient()->EGLErrorString(eglGetError()), mDisplayWidth);
 //     eglQuerySurface(display, surface, EGL_HEIGHT, &mDisplayHeight);
     mDisplayWidth = 480;
     mDisplayHeight = 640;
@@ -227,6 +236,7 @@ status_t DisplayDevice::prepareFrame(const HWComposer& hwc) const {
 }
 
 void DisplayDevice::swapBuffers(HWComposer& hwc) const {
+    ALOGI("DisplayDevice::swapBuffers");
     // We need to call eglSwapBuffers() if:
     //  (1) we don't have a hardware composer, or
     //  (2) we did GLES composition this frame, and either
@@ -236,6 +246,7 @@ void DisplayDevice::swapBuffers(HWComposer& hwc) const {
     if (hwc.initCheck() != NO_ERROR ||
             (hwc.hasGlesComposition(mHwcDisplayId) &&
              (hwc.supportsFramebufferTarget() || mType >= DISPLAY_VIRTUAL))) {
+        ALOGI("Swapping buffers");
         EGLBoolean success = eglSwapBuffers(mDisplay, mSurface);
         if (!success) {
             EGLint error = eglGetError();

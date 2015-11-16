@@ -20,7 +20,8 @@
 #include <stdint.h>
 #include <sys/types.h>
 
-#include <EGL/egl.h>
+// #include <EGL/egl.h>
+#include <epoxy/egl.h>
 
 /*
  * NOTE: Make sure this file doesn't include  anything from <gl/ > or <gl2/ >

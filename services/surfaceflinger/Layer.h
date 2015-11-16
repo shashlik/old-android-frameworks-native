@@ -20,8 +20,9 @@
 #include <stdint.h>
 #include <sys/types.h>
 
-#include <EGL/egl.h>
-#include <EGL/eglext.h>
+// #include <EGL/egl.h>
+// #include <EGL/eglext.h>
+#include <epoxy/egl.h>
 
 #include <utils/RefBase.h>
 #include <utils/String8.h>

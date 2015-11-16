@@ -22,8 +22,9 @@
 #include <ui/PixelFormat.h>
 #include <ui/Region.h>
 
-#include <EGL/egl.h>
-#include <EGL/eglext.h>
+// #include <EGL/egl.h>
+// #include <EGL/eglext.h>
+#include <epoxy/egl.h>
 
 #include <utils/Mutex.h>
 #include <utils/String8.h>

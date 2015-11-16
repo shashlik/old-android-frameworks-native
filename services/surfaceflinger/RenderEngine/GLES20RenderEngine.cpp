@@ -16,11 +16,12 @@
 
 #define ATRACE_TAG ATRACE_TAG_GRAPHICS
 
-#include <GLES2/gl2.h>
-#include <GLES2/gl2ext.h>
+// #include <GLES2/gl2.h>
+// #include <GLES2/gl2ext.h>
+#include <epoxy/gl.h>
 
-extern GL_APIENTRY void (*epoxy_glEGLImageTargetTexture2DOES)(GLenum target, GLeglImageOES image);
-#define glEGLImageTargetTexture2DOES epoxy_glEGLImageTargetTexture2DOES
+// extern GL_APIENTRY void (*epoxy_glEGLImageTargetTexture2DOES)(GLenum target, GLeglImageOES image);
+// #define glEGLImageTargetTexture2DOES epoxy_glEGLImageTargetTexture2DOES
 
 #include <utils/String8.h>
 #include <utils/Trace.h>
@@ -292,6 +293,6 @@ void GLES20RenderEngine::dump(String8& result) {
 }; // namespace android
 // ---------------------------------------------------------------------------
 
-#if defined(__gl_h_)
-#error "don't include gl/gl.h in this file"
-#endif
+// #if defined(__gl_h_)
+// #error "don't include gl/gl.h in this file"
+// #endif

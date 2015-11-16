@@ -21,16 +21,17 @@
 #include <stdint.h>
 #include <sys/types.h>
 
-#include <EGL/egl.h>
-#include <EGL/eglext.h>
+// #include <EGL/egl.h>
+// #include <EGL/eglext.h>
+#include <epoxy/egl.h>
 #include <ui/mat4.h>
 
-class WaylandClient;
 
 // ---------------------------------------------------------------------------
 namespace android {
 // ---------------------------------------------------------------------------
 
+class WaylandClient;
 class String8;
 class Rect;
 class Region;

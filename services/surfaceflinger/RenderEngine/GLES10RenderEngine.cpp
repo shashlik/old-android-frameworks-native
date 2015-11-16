@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#include <GLES/gl.h>
+// #include <GLES/gl.h>
+#include <epoxy/gl.h>
 
 #include <cutils/compiler.h>
 

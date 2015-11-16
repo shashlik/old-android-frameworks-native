@@ -26,6 +26,7 @@
 #include "Mesh.h"
 
 #include "WaylandClient.h"
+#include "WaylandWindow.h"
 
 // ---------------------------------------------------------------------------
 namespace android {
@@ -68,9 +69,13 @@ RenderEngine* RenderEngine::create(EGLDisplay display, EGLConfig config, Wayland
     // now figure out what version of GL did we actually get
     // NOTE: a dummy surface is not needed if KHR_create_context is supported
 
-//     EGLint attribs[] = { EGL_WIDTH, 1, EGL_HEIGHT, 1, EGL_NONE, EGL_NONE };
-//     EGLSurface dummy = eglCreateWindowSurface(display, config, attribs);
-    EGLSurface dummy = waylandClient->getSurface(display, config, 1, 1);
+    WaylandWindow* window = new WaylandWindow(1, 1);
+    window->init();
+
+    EGLint attribs[] = { EGL_WIDTH, 1, EGL_HEIGHT, 1, EGL_NONE, EGL_NONE };
+//     EGLSurface dummy = eglCreatePbufferSurface(display, config, attribs);
+//     EGLSurface dummy = waylandClient->getSurface(display, config, 1, 1);
+    EGLSurface dummy = eglCreateWindowSurface(display, config, window->getNative(), NULL);
     LOG_ALWAYS_FATAL_IF(dummy==EGL_NO_SURFACE, "can't create dummy pbuffer");
     EGLBoolean success = eglMakeCurrent(display, dummy, dummy, ctxt);
     LOG_ALWAYS_FATAL_IF(!success, "can't make dummy pbuffer current");
@@ -111,7 +116,8 @@ RenderEngine* RenderEngine::create(EGLDisplay display, EGLConfig config, Wayland
 
     eglMakeCurrent(display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
     // do not destroy! we resize&reuse later
-//     eglDestroySurface(display, dummy);
+    eglDestroySurface(display, dummy);
+    delete window;
 
     return engine;
 }
