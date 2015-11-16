@@ -20,7 +20,7 @@
 
 #include <android/native_window.h>
 
-#include <binder/Parcel.h>
+// #include <binder/Parcel.h>
 
 #include <utils/Log.h>
 #include <utils/Trace.h>
@@ -28,7 +28,7 @@
 #include <ui/Fence.h>
 
 #include <gui/ISurfaceComposer.h>
-#include <gui/SurfaceComposerClient.h>
+// #include <gui/SurfaceComposerClient.h>
 #include <gui/GLConsumer.h>
 #include <gui/Surface.h>
 

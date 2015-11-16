@@ -21,10 +21,12 @@
 #define GL_GLEXT_PROTOTYPES
 #define EGL_EGLEXT_PROTOTYPES
 
-#include <EGL/egl.h>
-#include <EGL/eglext.h>
-#include <GLES2/gl2.h>
-#include <GLES2/gl2ext.h>
+// #include <EGL/egl.h>
+// #include <EGL/eglext.h>
+#include <epoxy/egl.h>
+// #include <GLES2/gl2.h>
+// #include <GLES2/gl2ext.h>
+#include <epoxy/gl.h>
 #include <cutils/compiler.h>
 
 #include <hardware/hardware.h>
@@ -893,6 +895,79 @@ nsecs_t GLConsumer::getFrameNumber() {
     return mCurrentFrameNumber;
 }
 
+const char* EGLErrorString(EGLint nErr) {
+    switch(nErr){
+        case EGL_SUCCESS:               return "EGL_SUCCESS";
+        case EGL_BAD_DISPLAY:           return "EGL_BAD_DISPLAY";
+        case EGL_NOT_INITIALIZED:       return "EGL_NOT_INITIALIZED";
+        case EGL_BAD_ACCESS:            return "EGL_BAD_ACCESS";
+        case EGL_BAD_ALLOC:             return "EGL_BAD_ALLOC";
+        case EGL_BAD_ATTRIBUTE:         return "EGL_BAD_ATTRIBUTE";
+        case EGL_BAD_CONFIG:            return "EGL_BAD_CONFIG";
+        case EGL_BAD_CONTEXT:           return "EGL_BAD_CONTEXT";
+        case EGL_BAD_CURRENT_SURFACE:   return "EGL_BAD_CURRENT_SURFACE";
+        case EGL_BAD_MATCH:             return "EGL_BAD_MATCH";
+        case EGL_BAD_NATIVE_PIXMAP:     return "EGL_BAD_NATIVE_PIXMAP";
+        case EGL_BAD_NATIVE_WINDOW:     return "EGL_BAD_NATIVE_WINDOW";
+        case EGL_BAD_PARAMETER:         return "EGL_BAD_PARAMETER";
+        case EGL_BAD_SURFACE:           return "EGL_BAD_SURFACE";
+        default:                        return "unknown";
+    }
+}
+
+#define ggl_unlikely(x) __builtin_expect(!!(x), 0)
+
+static pthread_mutex_t gErrorKeyMutex = PTHREAD_MUTEX_INITIALIZER;
+static pthread_key_t gEGLErrorKey = -1;
+
+template<typename T>
+static T setError(GLint error, T returnValue) {
+    if (ggl_unlikely(gEGLErrorKey == -1)) {
+        pthread_mutex_lock(&gErrorKeyMutex);
+        if (gEGLErrorKey == -1)
+            pthread_key_create(&gEGLErrorKey, NULL);
+        pthread_mutex_unlock(&gErrorKeyMutex);
+    }
+    pthread_setspecific(gEGLErrorKey, (void*)error);
+    return returnValue;
+}
+
+EGLImageKHR fake_eglCreateImageKHR(EGLDisplay dpy, EGLContext ctx, EGLenum target,
+        EGLClientBuffer buffer, const EGLint *attrib_list)
+{
+//     if (egl_display_t::is_valid(dpy) == EGL_FALSE) {
+//         return setError(EGL_BAD_DISPLAY, EGL_NO_IMAGE_KHR);
+//     }
+    if (ctx != EGL_NO_CONTEXT) {
+        return setError(EGL_BAD_CONTEXT, EGL_NO_IMAGE_KHR);
+    }
+    if (target != EGL_NATIVE_BUFFER_ANDROID) {
+        return setError(EGL_BAD_PARAMETER, EGL_NO_IMAGE_KHR);
+    }
+
+    ANativeWindowBuffer* native_buffer = (ANativeWindowBuffer*)buffer;
+
+    if (native_buffer->common.magic != ANDROID_NATIVE_BUFFER_MAGIC)
+        return setError(EGL_BAD_PARAMETER, EGL_NO_IMAGE_KHR);
+
+    if (native_buffer->common.version != sizeof(ANativeWindowBuffer))
+        return setError(EGL_BAD_PARAMETER, EGL_NO_IMAGE_KHR);
+
+    switch (native_buffer->format) {
+        case HAL_PIXEL_FORMAT_RGBA_8888:
+        case HAL_PIXEL_FORMAT_RGBX_8888:
+        case HAL_PIXEL_FORMAT_RGB_888:
+        case HAL_PIXEL_FORMAT_RGB_565:
+        case HAL_PIXEL_FORMAT_BGRA_8888:
+            break;
+        default:
+            return setError(EGL_BAD_PARAMETER, EGL_NO_IMAGE_KHR);
+    }
+
+    native_buffer->common.incRef(&native_buffer->common);
+    return (EGLImageKHR)native_buffer;
+}
+
 EGLImageKHR GLConsumer::createImage(EGLDisplay dpy,
         const sp<GraphicBuffer>& graphicBuffer, const Rect& crop) {
     EGLClientBuffer cbuf = (EGLClientBuffer)graphicBuffer->getNativeBuffer();
@@ -917,13 +992,14 @@ EGLImageKHR GLConsumer::createImage(EGLDisplay dpy,
         attrs[2] = EGL_NONE;
     }
 
-    EGLClientBuffer wlBuffer = (EGLClientBuffer)graphicBuffer->getWaylandBuffer();
+//     EGLClientBuffer wlBuffer = (EGLClientBuffer)graphicBuffer->getWaylandBuffer();
 
-    EGLImageKHR image = eglCreateImageKHR(dpy, EGL_NO_CONTEXT,
-            EGL_WAYLAND_BUFFER_WL, wlBuffer, attrs);
+    EGLImageKHR image = fake_eglCreateImageKHR(dpy, EGL_NO_CONTEXT,
+               EGL_NATIVE_BUFFER_ANDROID, cbuf, attrs);
+//             EGL_WAYLAND_BUFFER_WL, wlBuffer, attrs);
     if (image == EGL_NO_IMAGE_KHR) {
         EGLint error = eglGetError();
-        ST_LOGE("error creating EGLImage on error: %#x, attempted to create it from buffer=%p", error, wlBuffer);
+        ST_LOGE("error creating EGLImage on error: %#x (%s), attempted to create it from buffer=%p", error, EGLErrorString(error), cbuf);
     }
     return image;
 }

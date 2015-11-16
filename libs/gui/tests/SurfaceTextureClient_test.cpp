@@ -17,8 +17,10 @@
 #define LOG_TAG "SurfaceTextureClient_test"
 //#define LOG_NDEBUG 0
 
-#include <EGL/egl.h>
-#include <GLES2/gl2.h>
+// #include <EGL/egl.h>
+#include <epoxy/egl.h>
+// #include <GLES2/gl2.h>
+#include <epoxy/gl.h>
 
 #include <gtest/gtest.h>
 #include <gui/GLConsumer.h>

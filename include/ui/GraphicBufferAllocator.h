@@ -71,7 +71,7 @@ public:
     static void dumpToSystemLog();
 
     // SHASHLIK
-    void setWaylandClient(WaylandClient* waylandClient);
+    void setWaylandClient(android::WaylandClient* waylandClient);
     void* getWaylandBuffer(buffer_handle_t handle);
 
 private:

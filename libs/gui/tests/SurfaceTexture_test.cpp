@@ -27,12 +27,14 @@
 #include <gui/Surface.h>
 #include <gui/SurfaceComposerClient.h>
 
-#include <EGL/egl.h>
-#include <EGL/eglext.h>
-#include <GLES/gl.h>
-#include <GLES/glext.h>
-#include <GLES2/gl2.h>
-#include <GLES2/gl2ext.h>
+// #include <EGL/egl.h>
+// #include <EGL/eglext.h>
+#include <epoxy/egl.h>
+// #include <GLES/gl.h>
+// #include <GLES/glext.h>
+// #include <GLES2/gl2.h>
+// #include <GLES2/gl2ext.h>
+#include <epoxy/gl.h>
 
 #include <ui/FramebufferNativeWindow.h>
 #include <utils/UniquePtr.h>

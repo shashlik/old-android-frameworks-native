@@ -17,8 +17,9 @@
 #ifndef ANDROID_GUI_BUFFERQUEUE_H
 #define ANDROID_GUI_BUFFERQUEUE_H
 
-#include <EGL/egl.h>
-#include <EGL/eglext.h>
+// #include <EGL/egl.h>
+// #include <EGL/eglext.h>
+#include <epoxy/egl.h>
 
 #include <binder/IBinder.h>
 

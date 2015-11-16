@@ -20,7 +20,8 @@
 #include <stdint.h>
 #include <sys/types.h>
 
-#include <EGL/egl.h>
+// #include <EGL/egl.h>
+#include <epoxy/egl.h>
 
 #include <utils/threads.h>
 #include <utils/String8.h>

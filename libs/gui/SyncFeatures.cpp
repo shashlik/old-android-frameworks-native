@@ -19,8 +19,9 @@
 #define GL_GLEXT_PROTOTYPES
 #define EGL_EGLEXT_PROTOTYPES
 
-#include <EGL/egl.h>
-#include <EGL/eglext.h>
+// #include <EGL/egl.h>
+// #include <EGL/eglext.h>
+#include <epoxy/egl.h>
 
 #include <utils/Log.h>
 #include <utils/Singleton.h>
@@ -42,19 +43,19 @@ SyncFeatures::SyncFeatures() : Singleton<SyncFeatures>(),
     // This can only be called after EGL has been initialized; otherwise the
     // check below will abort.
     const char* exts = eglQueryString(dpy, EGL_EXTENSIONS);
-    LOG_ALWAYS_FATAL_IF(exts == NULL, "eglQueryStringImplementationANDROID failed");
-    if (strstr(exts, "EGL_ANDROID_native_fence_sync")) {
-        // This makes GLConsumer use the EGL_ANDROID_native_fence_sync
-        // extension to create Android native fences to signal when all
-        // GLES reads for a given buffer have completed.
-        mHasNativeFenceSync = true;
-    }
-    if (strstr(exts, "EGL_KHR_fence_sync")) {
-        mHasFenceSync = true;
-    }
-    if (strstr(exts, "EGL_KHR_wait_sync")) {
-        mHasWaitSync = true;
-    }
+//     LOG_ALWAYS_FATAL_IF(exts == NULL, "eglQueryStringImplementationANDROID failed");
+//     if (strstr(exts, "EGL_ANDROID_native_fence_sync")) {
+//         // This makes GLConsumer use the EGL_ANDROID_native_fence_sync
+//         // extension to create Android native fences to signal when all
+//         // GLES reads for a given buffer have completed.
+//         mHasNativeFenceSync = true;
+//     }
+//     if (strstr(exts, "EGL_KHR_fence_sync")) {
+//         mHasFenceSync = true;
+//     }
+//     if (strstr(exts, "EGL_KHR_wait_sync")) {
+//         mHasWaitSync = true;
+//     }
     mString.append("[using:");
     if (useNativeFenceSync()) {
         mString.append(" EGL_ANDROID_native_fence_sync");

@@ -46,8 +46,8 @@ GraphicBufferAllocator::GraphicBufferAllocator()
     }
 }
 
-void GraphicBufferAllocator::setWaylandClient(WaylandClient* waylandClient) {
-    mAllocDev->setWaylandClient(mAllocDev, waylandClient);
+void GraphicBufferAllocator::setWaylandClient(android::WaylandClient* waylandClient) {
+//     mAllocDev->setWaylandClient(mAllocDev, waylandClient);
 }
 
 GraphicBufferAllocator::~GraphicBufferAllocator()
