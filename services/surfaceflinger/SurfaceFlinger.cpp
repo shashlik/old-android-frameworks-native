@@ -542,7 +542,7 @@ void SurfaceFlinger::init() {
     status_t err;
     Mutex::Autolock _l(mStateLock);
 
-    m_waylandClient = WaylandClient::getInstance();
+    m_waylandClient = &WaylandClient::getInstance();
     m_waylandClient->connect();
 //     m_waylandClient->waitForReady();
 
